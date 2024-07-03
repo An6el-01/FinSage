@@ -10,7 +10,6 @@ import { Ionicons } from '@expo/vector-icons';
 //Screens
 import Home from "./screens/Home";
 import Settings from "./screens/Settings";
-import AddTransaction from "./components/AddTransaction";
 import Statistics from "./screens/Statistics";
 
 const Tab = createBottomTabNavigator();

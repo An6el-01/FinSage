@@ -17,3 +17,5 @@ export interface Transaction {
     totalExpenses: number;
     totalIncome: number;
   }
+
+  
