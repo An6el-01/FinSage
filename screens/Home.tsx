@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ScrollView, StyleSheet, Text, TextStyle, Platform, View } from "react-native";
+import { ScrollView, StyleSheet, Text, TextStyle, Platform, View, Button } from "react-native";
 import { Category, Transaction, TransactionsByMonth } from "../types";
 import { useSQLiteContext } from "expo-sqlite/next";
 import TransactionList from "../components/TransactionsList";
@@ -7,11 +7,11 @@ import Card from "../components/ui/Card";
 import AddTransaction from "../components/AddTransaction";
 
 const colors = {
-    primary: '#FCB900',
-    secondary: '#F9A800',
-    text: '#212121',
-    background: '#F5F5F5',
-  };
+  primary: '#FCB900',
+  secondary: '#F9A800',
+  text: '#212121',
+  background: '#F5F5F5',
+};
 
 export default function Home() {
   const [categories, setCategories] = React.useState<Category[]>([]);
@@ -21,6 +21,7 @@ export default function Home() {
       totalExpenses: 0,
       totalIncome: 0,
     });
+  const [currentMonth, setCurrentMonth] = React.useState(new Date());
 
   const db = useSQLiteContext();
 
@@ -28,11 +29,19 @@ export default function Home() {
     db.withTransactionAsync(async () => {
       await getData();
     });
-  }, [db]);
+  }, [db, currentMonth]);
 
   async function getData() {
+    const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
+    endOfMonth.setMilliseconds(endOfMonth.getMilliseconds() - 1);
+
+    const startOfMonthTimestamp = Math.floor(startOfMonth.getTime() / 1000);
+    const endOfMonthTimestamp = Math.floor(endOfMonth.getTime() / 1000);
+
     const result = await db.getAllAsync<Transaction>(
-      `SELECT * FROM Transactions ORDER BY date DESC;`
+      `SELECT * FROM Transactions WHERE date >= ? AND date <= ? ORDER BY date DESC;`,
+      [startOfMonthTimestamp, endOfMonthTimestamp]
     );
     setTransactions(result);
 
@@ -40,17 +49,6 @@ export default function Home() {
       `SELECT * FROM Categories;`
     );
     setCategories(categoriesResult);
-
-    const now = new Date();
-    // Set to the first day of the current month
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    // Get the first day of the next month, then subtract one millisecond to get the end of the current month
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    endOfMonth.setMilliseconds(endOfMonth.getMilliseconds() - 1);
-
-    // Convert to Unix timestamps (seconds)
-    const startOfMonthTimestamp = Math.floor(startOfMonth.getTime() / 1000);
-    const endOfMonthTimestamp = Math.floor(endOfMonth.getTime() / 1000);
 
     const transactionsByMonth = await db.getAllAsync<TransactionsByMonth>(
       `
@@ -90,12 +88,29 @@ export default function Home() {
     });
   }
 
+  const handlePreviousMonth = () => {
+    setCurrentMonth(prevMonth => {
+      const newMonth = new Date(prevMonth.getFullYear(), prevMonth.getMonth() - 1, 1);
+      return newMonth;
+    });
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonth(prevMonth => {
+      const newMonth = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 1);
+      return newMonth;
+    });
+  };
+
   return (
     <ScrollView contentContainerStyle={{ padding: 15, paddingVertical: Platform.OS === 'ios' ? 17 : 17 }}>
       <AddTransaction insertTransaction={insertTransaction} />
       <TransactionSummary
         totalExpenses={transactionsByMonth.totalExpenses}
         totalIncome={transactionsByMonth.totalIncome}
+        currentMonth={currentMonth}
+        handlePreviousMonth={handlePreviousMonth}
+        handleNextMonth={handleNextMonth}
       />
       <View style={styles.transactionList}>
         <Text style={styles.periodTitle}>Transactions</Text>
@@ -103,7 +118,7 @@ export default function Home() {
           categories={categories}
           transactions={transactions}
           deleteTransaction={deleteTransaction}
-      />
+        />
       </View>
     </ScrollView>
   );
@@ -112,9 +127,12 @@ export default function Home() {
 function TransactionSummary({
   totalIncome,
   totalExpenses,
-}: TransactionsByMonth) {
+  currentMonth,
+  handlePreviousMonth,
+  handleNextMonth
+}: TransactionsByMonth & { currentMonth: Date, handlePreviousMonth: () => void, handleNextMonth: () => void }) {
   const savings = totalIncome - totalExpenses;
-  const readablePeriod = new Date().toLocaleDateString("default", {
+  const readablePeriod = currentMonth.toLocaleDateString("default", {
     month: "long",
     year: "numeric",
   });
@@ -134,6 +152,10 @@ function TransactionSummary({
   return (
     <Card style={styles.container}>
       <Text style={styles.periodTitle}>Summary for {readablePeriod}</Text>
+      <View style={styles.buttonContainer}>
+        <Button title="Previous Month" onPress={handlePreviousMonth} />
+        <Button title="Next Month" onPress={handleNextMonth} />
+      </View>
       <Text style={styles.summaryText}>
         Gross Income:{" "}
         <Text style={getMoneyTextStyle(totalIncome)}>
@@ -172,6 +194,11 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   transactionList: {
+    marginBottom: 15,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 15,
   },
 });

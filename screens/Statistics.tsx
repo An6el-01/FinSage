@@ -30,17 +30,37 @@ const styles = StyleSheet.create({
   button: {
     flex: 1,
     marginHorizontal: 5,
+  },
+  navigationButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  currentMonthText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 15,
   }
 });
 
 export default function Statistics() {
   const [data, setData] = React.useState<Transaction[]>([]);
   const [filter, setFilter] = React.useState<string>('Expense');
+  const [currentMonth, setCurrentMonth] = React.useState(new Date());
   const db = useSQLiteContext();
 
   const fetchData = async () => {
+    const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
+    endOfMonth.setMilliseconds(endOfMonth.getMilliseconds() - 1);
+
+    const startOfMonthTimestamp = Math.floor(startOfMonth.getTime() / 1000);
+    const endOfMonthTimestamp = Math.floor(endOfMonth.getTime() / 1000);
+
     const result = await db.getAllAsync<Transaction>(
-      `SELECT * FROM Transactions ORDER BY date DESC;`
+      `SELECT * FROM Transactions WHERE date >= ? AND date <= ? ORDER BY date DESC;`,
+      [startOfMonthTimestamp, endOfMonthTimestamp]
     );
     setData(result);
   };
@@ -50,16 +70,39 @@ export default function Statistics() {
       db.withTransactionAsync(async () => {
         await fetchData();
       });
-    }, [db])
+    }, [db, currentMonth])
   );
 
   const filteredData = filter
     ? data.filter(transaction => transaction.type === filter)
     : data;
 
+  const handlePreviousMonth = () => {
+    setCurrentMonth(prevMonth => {
+      const newMonth = new Date(prevMonth.getFullYear(), prevMonth.getMonth() - 1, 1);
+      return newMonth;
+    });
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonth(prevMonth => {
+      const newMonth = new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 1);
+      return newMonth;
+    });
+  };
+
+  const readableMonth = currentMonth.toLocaleDateString("default", {
+    month: "long",
+    year: "numeric",
+  });
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.text}>Statistics Page</Text>
+      <Text style={styles.currentMonthText}>Statistics for {readableMonth}</Text>
+      <View style={styles.navigationButtonContainer}>
+        <Button title="Previous Month" onPress={handlePreviousMonth} />
+        <Button title="Next Month" onPress={handleNextMonth} />
+      </View>
       <View style={styles.buttonContainer}>
         <Button
           title="Expense"
