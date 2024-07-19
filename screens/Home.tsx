@@ -5,6 +5,9 @@ import { useSQLiteContext } from "expo-sqlite/next";
 import TransactionList from "../components/TransactionsList";
 import Card from "../components/ui/Card";
 import AddTransaction from "../components/AddTransaction";
+import PieChart from 'react-native-pie-chart'; // Import the pie chart library
+import { Dimensions } from 'react-native';
+import { categoryColors } from '../constants'; // Import category colors
 
 const colors = {
   primary: '#FCB900',
@@ -104,14 +107,15 @@ export default function Home() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 15, paddingVertical: Platform.OS === 'ios' ? 17 : 17 }}>
-      <AddTransaction insertTransaction={insertTransaction} />
       <TransactionSummary
         totalExpenses={transactionsByMonth.totalExpenses}
         totalIncome={transactionsByMonth.totalIncome}
+        transactions={transactions}
         currentMonth={currentMonth}
         handlePreviousMonth={handlePreviousMonth}
         handleNextMonth={handleNextMonth}
       />
+      <AddTransaction insertTransaction={insertTransaction} />
       <View style={styles.transactionList}>
         <Text style={styles.periodTitle}>Transactions</Text>
         <TransactionList
@@ -127,10 +131,11 @@ export default function Home() {
 function TransactionSummary({
   totalIncome,
   totalExpenses,
+  transactions,
   currentMonth,
   handlePreviousMonth,
   handleNextMonth
-}: TransactionsByMonth & { currentMonth: Date, handlePreviousMonth: () => void, handleNextMonth: () => void }) {
+}: TransactionsByMonth & { transactions: Transaction[], currentMonth: Date, handlePreviousMonth: () => void, handleNextMonth: () => void }) {
   const savings = totalIncome - totalExpenses;
   const readablePeriod = currentMonth.toLocaleDateString("default", {
     month: "long",
@@ -148,6 +153,23 @@ function TransactionSummary({
     const absValue = Math.abs(value).toFixed(2);
     return `${value < 0 ? "-" : ""}$${absValue}`;
   };
+
+  // Prepare data for the doughnut chart
+  const data = transactions.reduce((acc: { [key: string]: any }, transaction) => {
+    const category = transaction.category_id;
+    if (!acc[category]) {
+      acc[category] = {
+        name: category,
+        amount: 0,
+        color: categoryColors[category] || categoryColors["Transportation"], // Use color from constants
+      };
+    }
+    acc[category].amount += transaction.amount;
+    return acc;
+  }, {});
+
+  const chartData = Object.values(data).map(item => item.amount);
+  const chartColors = Object.values(data).map(item => item.color);
 
   return (
     <Card style={styles.container}>
@@ -172,6 +194,17 @@ function TransactionSummary({
         Net Balance:{" "}
         <Text style={getMoneyTextStyle(savings)}>{formatMoney(savings)}</Text>
       </Text>
+      {chartData.reduce((a, b) => a + b, 0) > 0 ? (
+        <PieChart
+          widthAndHeight={Dimensions.get('window').width - 150}
+          series={chartData}
+          sliceColor={chartColors}
+          coverRadius={0.8}
+          coverFill={colors.background}
+        />
+      ) : (
+        <Text style={styles.noDataText}>No transactions to display</Text>
+      )}
     </Card>
   );
 }
@@ -200,5 +233,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 15,
+  },
+  noDataText: {
+    fontSize: 18,
+    color: colors.text,
+    marginTop: 20,
+    textAlign: 'center',
   },
 });

@@ -1,26 +1,26 @@
 export const categoryColors: { [key: string]: string } = {
-  Utilities: "#00CED1", // DarkTurquoise
-  Electronics: "#8A2BE2", // BlueViolet
-  "Dining Out": "#FFA07A", // LightSalmon
-  "Household Items": "#F0E68C", // Khaki
-  Bonus: "#6B8E23", // OliveDrab
-  Rent: "#FF6347", // Tomato
-  Groceries: "#FFD700", // Gold
-  Transportation: "#20B2AA", // LightSeaGreen (default for missing categories)
-  Clothing: "#DAA520", // GoldenRod
-  Subscriptions: "#778899", // LightSlateGray
-  Gym: "#4682B4", // SteelBlue
-  Leisure: "#DB7093", // PaleVioletRed
-  Travel: "#CD853F", // Peru
-  Gifts: "#FF69B4", // HotPink
-  "Pet Care": "#BDB76B", // DarkKhaki
-  "Credit Card Payments": "#FFDEAD", // NavajoWhite
-  Taxes: "#6495ED", // CornflowerBlue
-  Miscellaneous: "#32CD32", // LimeGreen
-  Salary: "#5F9EA0", // CadetBlue (Income category)
-  Freelancing: "#5F9EA0", // CadetBlue (Income category)
-  "Gifts Received": "#5F9EA0", // CadetBlue (Income category)
-  "Business Profits": "#5F9EA0", // CadetBlue (Income category)
+  1: "#00CED1", // DarkTurquoise
+  2: "#8A2BE2", // BlueViolet
+  3: "#FFA07A", // LightSalmon
+  5: "#F0E68C", // Khaki
+  9: "#6B8E23", // OliveDrab
+  16: "#FF6347", // Tomato
+  17: "#FFD700", // Gold
+  18: "#20B2AA", // LightSeaGreen (default for missing categories)
+  19: "#DAA520", // GoldenRod
+  20: "#778899", // LightSlateGray
+  21: "#4682B4", // SteelBlue
+  22: "#DB7093", // PaleVioletRed
+  23: "#CD853F", // Peru
+  24: "#FF69B4", // HotPink
+  25: "#BDB76B", // DarkKhaki
+  26: "#FFDEAD", // NavajoWhite
+  27: "#6495ED", // CornflowerBlue
+  28: "#32CD32", // LimeGreen
+  29: "#5F9EA0", // CadetBlue (Income category)
+  30: "#5F9EA0", // CadetBlue (Income category)
+  31: "#5F9EA0", // CadetBlue (Income category)
+  32: "#5F9EA0", // CadetBlue (Income category)
 };
 
 export const categoryEmojies: { [key: string]: string } = {
