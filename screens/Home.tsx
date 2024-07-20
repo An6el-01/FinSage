@@ -7,7 +7,7 @@ import Card from "../components/ui/Card";
 import AddTransaction from "../components/AddTransaction";
 import PieChart from 'react-native-pie-chart'; // Import the pie chart library
 import { Dimensions } from 'react-native';
-import { categoryColors } from '../constants'; // Import category colors
+import { categoryColors, categoryEmojies } from '../constants'; // Import category colors and emojis
 
 const colors = {
   primary: '#FCB900',
@@ -111,6 +111,7 @@ export default function Home() {
         totalExpenses={transactionsByMonth.totalExpenses}
         totalIncome={transactionsByMonth.totalIncome}
         transactions={transactions}
+        categories={categories}
         currentMonth={currentMonth}
         handlePreviousMonth={handlePreviousMonth}
         handleNextMonth={handleNextMonth}
@@ -132,10 +133,11 @@ function TransactionSummary({
   totalIncome,
   totalExpenses,
   transactions,
+  categories,
   currentMonth,
   handlePreviousMonth,
   handleNextMonth
-}: TransactionsByMonth & { transactions: Transaction[], currentMonth: Date, handlePreviousMonth: () => void, handleNextMonth: () => void }) {
+}: TransactionsByMonth & { transactions: Transaction[], categories: Category[], currentMonth: Date, handlePreviousMonth: () => void, handleNextMonth: () => void }) {
   const savings = totalIncome - totalExpenses;
   const readablePeriod = currentMonth.toLocaleDateString("default", {
     month: "long",
@@ -154,14 +156,16 @@ function TransactionSummary({
     return `${value < 0 ? "-" : ""}$${absValue}`;
   };
 
-  // Prepare data for the doughnut chart
+  // Prepare data for the doughnut chart and cards
   const data = transactions.reduce((acc: { [key: string]: any }, transaction) => {
     const category = transaction.category_id;
+    const categoryName = categories.find(cat => cat.id === category)?.name || "Unknown";
     if (!acc[category]) {
       acc[category] = {
-        name: category,
+        name: categoryName,
         amount: 0,
-        color: categoryColors[category] || categoryColors["Transportation"], // Use color from constants
+        color: categoryColors[category] || categoryColors["18"], // Use color from constants
+        emoji: categoryEmojies[categoryName] || "", // Use emoji from constants
       };
     }
     acc[category].amount += transaction.amount;
@@ -196,7 +200,7 @@ function TransactionSummary({
       </Text>
       {chartData.reduce((a, b) => a + b, 0) > 0 ? (
         <PieChart
-          widthAndHeight={Dimensions.get('window').width - 150}
+          widthAndHeight={Dimensions.get('window').width - 170}
           series={chartData}
           sliceColor={chartColors}
           coverRadius={0.8}
@@ -205,6 +209,12 @@ function TransactionSummary({
       ) : (
         <Text style={styles.noDataText}>No transactions to display</Text>
       )}
+      {Object.values(data).map((item, index) => (
+        <Card key={index} style={{ ...styles.categoryCard, backgroundColor: item.color }}>
+          <Text style={styles.categoryText}>{item.emoji} {item.name}</Text>
+          <Text style={styles.categoryAmount}>{formatMoney(item.amount)}</Text>
+        </Card>
+      ))}
     </Card>
   );
 }
@@ -239,5 +249,19 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginTop: 20,
     textAlign: 'center',
+  },
+  categoryCard: {
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  categoryText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  categoryAmount: {
+    fontSize: 16,
+    color: '#fff',
   },
 });
