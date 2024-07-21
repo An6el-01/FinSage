@@ -1,8 +1,10 @@
 import * as React from 'react';
-import { ScrollView, Text, View, StyleSheet, Button } from 'react-native';
-import { Category, Transaction, TransactionsByMonth } from "../types";
+import { ScrollView, Text, View, StyleSheet, TouchableOpacity, Button } from 'react-native';
+import { Category, Transaction } from "../types";
 import { useSQLiteContext } from 'expo-sqlite/next';
 import { useFocusEffect } from '@react-navigation/native';
+import { categoryColors, categoryEmojies } from '../constants'; // Import category colors and emojis
+import PieChart from 'react-native-pie-chart';
 
 const colors = {
   primary: '#FCB900',
@@ -22,14 +24,34 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 10,
   },
-  buttonContainer: {
+  cardContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     marginBottom: 20,
   },
-  button: {
+  card: {
     flex: 1,
+    padding: 15,
     marginHorizontal: 5,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  expenseCard: {
+    backgroundColor: '#FF6347', // Tomato color for expenses
+  },
+  incomeCard: {
+    backgroundColor: '#5F9EA0', // CadetBlue color for income
+  },
+  cardText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 5,
+  },
+  cardAmount: {
+    fontSize: 18,
+    color: '#fff',
   },
   navigationButtonContainer: {
     flexDirection: 'row',
@@ -41,13 +63,58 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 15,
-  }
+  },
+  periodTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: colors.text,
+    marginBottom: 15,
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+    backgroundColor: colors.background,
+  },
+  categoryText: {
+    fontSize: 18,
+    color: colors.text,
+    marginLeft: 10,
+  },
+  categoryAmount: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginLeft: 'auto',
+  },
+  netBalanceText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
+    color: '#000',
+  },
+  noDataText: {
+    fontSize: 18,
+    color: colors.text,
+    textAlign: 'center',
+    marginTop: 20,
+  },
 });
+
+type GroupedTransactions = {
+  [key: string]: {
+    amount: number;
+    type: string;
+  };
+};
 
 export default function Statistics() {
   const [data, setData] = React.useState<Transaction[]>([]);
   const [filter, setFilter] = React.useState<string>('Expense');
   const [currentMonth, setCurrentMonth] = React.useState(new Date());
+  const [categories, setCategories] = React.useState<Category[]>([]);
   const db = useSQLiteContext();
 
   const fetchData = async () => {
@@ -63,6 +130,11 @@ export default function Statistics() {
       [startOfMonthTimestamp, endOfMonthTimestamp]
     );
     setData(result);
+
+    const categoriesResult = await db.getAllAsync<Category>(
+      `SELECT * FROM Categories;`
+    );
+    setCategories(categoriesResult);
   };
 
   useFocusEffect(
@@ -96,35 +168,75 @@ export default function Statistics() {
     year: "numeric",
   });
 
+  const totalIncome = data.filter(transaction => transaction.type === 'Income')
+    .reduce((sum, transaction) => sum + transaction.amount, 0);
+
+  const totalExpenses = data.filter(transaction => transaction.type === 'Expense')
+    .reduce((sum, transaction) => sum + transaction.amount, 0);
+
+  const netBalance = totalIncome - totalExpenses;
+
+  // Group transactions by category
+  const groupedTransactions: GroupedTransactions = filteredData.reduce((acc: GroupedTransactions, transaction: Transaction) => {
+    const category = transaction.category_id.toString();
+    if (!acc[category]) {
+      acc[category] = {
+        amount: 0,
+        type: transaction.type,
+      };
+    }
+    acc[category].amount += transaction.amount;
+    return acc;
+  }, {});
+
+  const chartData = Object.values(groupedTransactions).map(item => item.amount);
+  const chartColors = Object.keys(groupedTransactions).map(categoryId => categoryColors[categoryId] || '#000');
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.currentMonthText}>Statistics for {readableMonth}</Text>
+      <Text style={styles.netBalanceText}>Net Balance: {netBalance < 0 ? '-' : '+'}${Math.abs(netBalance).toFixed(2)}</Text>
       <View style={styles.navigationButtonContainer}>
         <Button title="Previous Month" onPress={handlePreviousMonth} />
         <Button title="Next Month" onPress={handleNextMonth} />
       </View>
-      <View style={styles.buttonContainer}>
-        <Button
-          title="Expense"
-          onPress={() => setFilter('Expense')}
-          color={filter === 'Expense' ? colors.primary : colors.secondary}
-        />
-        <Button
-          title="Income"
-          onPress={() => setFilter('Income')}
-          color={filter === 'Income' ? colors.primary : colors.secondary}
-        />
+      <View style={styles.cardContainer}>
+        <TouchableOpacity style={[styles.card, styles.expenseCard]} onPress={() => setFilter('Expense')}>
+          <Text style={styles.cardText}>Expense</Text>
+          <Text style={styles.cardAmount}>- ${totalExpenses.toFixed(2)}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.card, styles.incomeCard]} onPress={() => setFilter('Income')}>
+          <Text style={styles.cardText}>Income</Text>
+          <Text style={styles.cardAmount}>+ ${totalIncome.toFixed(2)}</Text>
+        </TouchableOpacity>
       </View>
-      {filteredData.map((item, index) => (
-        <View key={index} style={styles.text}>
-          <Text>Transaction ID: {item.id}</Text>
-          <Text>Amount: {item.amount}</Text>
-          <Text>Date: {new Date(item.date * 1000).toLocaleDateString()}</Text>
-          <Text>Description: {item.description}</Text>
-          <Text>Type: {item.type}</Text>
-          <Text>Category: {item.category_id}</Text>
-        </View>
-      ))}
+      <Text style={styles.periodTitle}>Categories</Text>
+      {chartData.reduce((a, b) => a + b, 0) > 0 ? (
+        <PieChart
+          widthAndHeight={150}
+          series={chartData}
+          sliceColor={chartColors}
+          coverRadius={0.6}
+          coverFill={colors.background}
+        />
+      ) : (
+        <Text style={styles.noDataText}>No transactions to display</Text>
+      )}
+      {Object.keys(groupedTransactions).map(categoryId => {
+        const amount = groupedTransactions[categoryId].amount;
+        const type = groupedTransactions[categoryId].type;
+        const categoryName = categories.find(cat => cat.id.toString() === categoryId)?.name || "Unknown";
+        const emoji = categoryEmojies[categoryName] || '';
+        return (
+          <View key={categoryId} style={styles.categoryRow}>
+            <Text style={styles.categoryText}>{emoji} {categoryName}</Text>
+            <Text style={[styles.categoryAmount, { color: type === 'Expense' ? '#ff4500' : '#2e8b57' }]}>
+              {type === 'Expense' ? '-' : '+'}${amount.toFixed(2)}
+            </Text>
+          </View>
+        );
+      })}
+      <Button title="View Yearly Summary" onPress={() => { /* Implement navigation to yearly summary page */ }} />
     </ScrollView>
   );
 }
