@@ -17,5 +17,11 @@ export interface Transaction {
     totalExpenses: number;
     totalIncome: number;
   }
-
+  export type Goal = {
+    id: number;
+    name: string;
+    amount: number;
+    progress: number;
+  };
+  
   

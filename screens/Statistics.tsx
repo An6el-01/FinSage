@@ -5,6 +5,7 @@ import { useSQLiteContext } from 'expo-sqlite/next';
 import { useFocusEffect } from '@react-navigation/native';
 import { categoryColors, categoryEmojies } from '../constants'; // Import category colors and emojis
 import PieChart from 'react-native-pie-chart';
+import Card from "../components/ui/Card";
 
 const colors = {
   primary: '#FCB900',
@@ -194,6 +195,7 @@ export default function Statistics() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <Card>
       <Text style={styles.currentMonthText}>Statistics for {readableMonth}</Text>
       <Text style={styles.netBalanceText}>Net Balance: {netBalance < 0 ? '-' : '+'}${Math.abs(netBalance).toFixed(2)}</Text>
       <View style={styles.navigationButtonContainer}>
@@ -210,7 +212,6 @@ export default function Statistics() {
           <Text style={styles.cardAmount}>+ ${totalIncome.toFixed(2)}</Text>
         </TouchableOpacity>
       </View>
-      <Text style={styles.periodTitle}>Categories</Text>
       {chartData.reduce((a, b) => a + b, 0) > 0 ? (
         <PieChart
           widthAndHeight={150}
@@ -222,6 +223,9 @@ export default function Statistics() {
       ) : (
         <Text style={styles.noDataText}>No transactions to display</Text>
       )}
+      </Card>
+      <Text style={styles.periodTitle}>Categories</Text>
+      <Card>
       {Object.keys(groupedTransactions).map(categoryId => {
         const amount = groupedTransactions[categoryId].amount;
         const type = groupedTransactions[categoryId].type;
@@ -236,6 +240,8 @@ export default function Statistics() {
           </View>
         );
       })}
+      </Card>
+      
       <Button title="View Yearly Summary" onPress={() => { /* Implement navigation to yearly summary page */ }} />
     </ScrollView>
   );

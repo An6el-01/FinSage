@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Home from "./screens/Home";
 import Settings from "./screens/Settings";
 import Statistics from "./screens/Statistics";
+import Goals from "./screens/Goals";
 
 const Tab = createBottomTabNavigator();
 
@@ -80,7 +81,9 @@ export default function App() {
                   iconName = focused ? "home" : "home-outline";
                 }else if (route.name === "Statistics"){
                   iconName =  focused ? "bar-chart" : "bar-chart-outline";
-                 }else if (route.name === "Settings"){
+                }else if(route.name === "Goals"){
+                  iconName = focused ? "trophy" : "trophy-outline";
+                }else if (route.name === "Settings"){
                   iconName =  focused ? "settings" : "settings-outline";
                 }
                 return <Ionicons name={iconName as "key"} size={size} color={color} />;
@@ -91,6 +94,7 @@ export default function App() {
             >
             <Tab.Screen name = "Home" component={Home}/>
             <Tab.Screen name = "Statistics" component={Statistics} />
+            <Tab.Screen name = "Goals" component={Goals} />
             <Tab.Screen name = "Settings" component={Settings} />
           </Tab.Navigator>
         </SQLiteProvider>        
