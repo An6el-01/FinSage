@@ -27,10 +27,18 @@ export const useGoalDataAccess = () => {
     await db.runAsync(`DELETE FROM Goals WHERE id = ?;`, [id]);
   };
 
+  const depositGoal = async (goal: Goal, amount:number) => {
+    await db.runAsync(
+      `UPDATE Goals SET progress = progress + ? WHERE id = ?;`,
+      [amount, goal.id]
+    );
+  };
+
   return {
     getGoals,
     insertGoal,
     updateGoal,
     deleteGoal,
+    depositGoal,
   };
 };

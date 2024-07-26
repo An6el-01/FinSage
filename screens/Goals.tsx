@@ -5,6 +5,7 @@ import { useGoalDataAccess } from "../components/GoalDataAccess";
 import Card from '../components/ui/Card';
 import AddGoal from '../components/AddGoal';
 import UpdateGoal from '../components/UpdateGoal'; // Import the UpdateGoal component
+import DepositGoal from '../components/DepositGoal'; // Import the DepositGoal component
 
 const colors = {
   primary: "#FCB900",
@@ -45,11 +46,12 @@ const formatCurrency = (value: number) => {
 };
 
 export default function Goals() {
-  const { getGoals, insertGoal, updateGoal, deleteGoal } = useGoalDataAccess();
+  const { getGoals, insertGoal, updateGoal, deleteGoal, depositGoal } = useGoalDataAccess();
   const [goals, setGoals] = React.useState<Goal[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [showAddGoal, setShowAddGoal] = React.useState<boolean>(false);
   const [showUpdateGoal, setShowUpdateGoal] = React.useState<Goal | null>(null); // Track the goal to update
+  const [showDepositGoal, setShowDepositGoal] = React.useState<Goal | null>(null); // Track the goal to deposit
 
   React.useEffect(() => {
     loadGoals();
@@ -92,12 +94,20 @@ export default function Goals() {
               loadGoals={loadGoals}
               setShowUpdateGoal={setShowUpdateGoal}
             />
+          ) : showDepositGoal?.id === goal.id ? (
+            <DepositGoal
+              goal={showDepositGoal}
+              depositGoal={depositGoal}
+              loadGoals={loadGoals}
+              setShowDepositGoal={setShowDepositGoal}
+            />
           ) : (
             <>
               <Text>{goal.name}</Text>
               <Text>{formatCurrency(goal.amount)}</Text>
               <Text>{formatCurrency(goal.progress)}</Text>
               <Button title="Update" onPress={() => setShowUpdateGoal(goal)} />
+              <Button title="Deposit" onPress={() => setShowDepositGoal(goal)} />
               <Button title="Delete" onPress={() => handleDeleteGoal(goal.id)} />
             </>
           )}
