@@ -12,6 +12,7 @@ import Home from "./screens/Home";
 import Settings from "./screens/Settings";
 import Statistics from "./screens/Statistics";
 import Goals from "./screens/Goals";
+import NewTransaction from "./screens/NewTransaction"; // Import the NewTransaction page
 
 const Tab = createBottomTabNavigator();
 
@@ -85,6 +86,8 @@ export default function App() {
                   iconName = focused ? "trophy" : "trophy-outline";
                 }else if (route.name === "Settings"){
                   iconName =  focused ? "settings" : "settings-outline";
+                }else if (route.name === "NewTransaction") {
+                  iconName = focused ? "add-circle" : "add-circle-outline";
                 }
                 return <Ionicons name={iconName as "key"} size={size} color={color} />;
               },
@@ -94,6 +97,7 @@ export default function App() {
             >
             <Tab.Screen name = "Home" component={Home}/>
             <Tab.Screen name = "Statistics" component={Statistics} />
+            <Tab.Screen name = "NewTransaction" component={NewTransaction} options={{ title: 'New Entry' }} />
             <Tab.Screen name = "Goals" component={Goals} />
             <Tab.Screen name = "Settings" component={Settings} />
           </Tab.Navigator>

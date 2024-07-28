@@ -1,5 +1,6 @@
 import * as React from "react";
 import { ScrollView, StyleSheet, Text, TextStyle, Platform, View, Button } from "react-native";
+import { useFocusEffect } from '@react-navigation/native'; // Import the useFocusEffect hook
 import { Category, Transaction, TransactionsByMonth } from "../types";
 import { useSQLiteContext } from "expo-sqlite/next";
 import TransactionList from "../components/TransactionsList";
@@ -19,20 +20,21 @@ const colors = {
 export default function Home() {
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [transactions, setTransactions] = React.useState<Transaction[]>([]);
-  const [transactionsByMonth, setTransactionsByMonth] =
-    React.useState<TransactionsByMonth>({
-      totalExpenses: 0,
-      totalIncome: 0,
-    });
+  const [transactionsByMonth, setTransactionsByMonth] = React.useState<TransactionsByMonth>({
+    totalExpenses: 0,
+    totalIncome: 0,
+  });
   const [currentMonth, setCurrentMonth] = React.useState(new Date());
 
   const db = useSQLiteContext();
 
-  React.useEffect(() => {
-    db.withTransactionAsync(async () => {
-      await getData();
-    });
-  }, [db, currentMonth]);
+  useFocusEffect(
+    React.useCallback(() => {
+      db.withTransactionAsync(async () => {
+        await getData();
+      });
+    }, [db, currentMonth])
+  );
 
   async function getData() {
     const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
@@ -144,19 +146,16 @@ function TransactionSummary({
     year: "numeric",
   });
 
-  // Function to determine the style based on the value (positive or negative)
   const getMoneyTextStyle = (value: number): TextStyle => ({
     fontWeight: "bold",
     color: value < 0 ? "#ff4500" : "#2e8b57", // Red for negative, custom green for positive
   });
 
-  // Helper function to format monetary values
   const formatMoney = (value: number) => {
     const absValue = Math.abs(value).toFixed(2);
     return `${value < 0 ? "-" : ""}$${absValue}`;
   };
 
-  // Prepare data for the doughnut chart and cards
   const data = transactions.reduce((acc: { [key: string]: any }, transaction) => {
     const category = transaction.category_id;
     const categoryName = categories.find(cat => cat.id === category)?.name || "Unknown";
@@ -164,8 +163,8 @@ function TransactionSummary({
       acc[category] = {
         name: categoryName,
         amount: 0,
-        color: categoryColors[category] || categoryColors["18"], // Use color from constants
-        emoji: categoryEmojies[categoryName] || "", // Use emoji from constants
+        color: categoryColors[category] || categoryColors["18"],
+        emoji: categoryEmojies[categoryName] || "",
       };
     }
     acc[category].amount += transaction.amount;
