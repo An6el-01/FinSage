@@ -5,6 +5,7 @@ import * as FileSystem from "expo-file-system";
 import { Asset } from "expo-asset";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from "@react-navigation/stack";
 import { Ionicons } from '@expo/vector-icons';
 
 //Screens
@@ -13,8 +14,10 @@ import Settings from "./screens/Settings";
 import Statistics from "./screens/Statistics";
 import Goals from "./screens/Goals";
 import NewTransaction from "./screens/NewTransaction"; // Import the NewTransaction page
+import YearlySummary from "./screens/YearlySummary";
 
 const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
 
 const colors = {
   primary: '#FCB900',
@@ -45,6 +48,16 @@ const loadDatabase = async () => {
     await FileSystem.downloadAsync(dbUri, dbFilePath);
   }
 };
+
+const StatisticsStack = () => {
+  return(
+    <Stack.Navigator>
+    <Stack.Screen name="Statistics Main " component={Statistics}/>
+    <Stack.Screen name="Yearly Summary" component={YearlySummary}/> 
+  </Stack.Navigator>
+  );
+  
+}
 
 export default function App() {
   const [dbLoaded, setDbLoaded] = React.useState<boolean>(false);
@@ -96,7 +109,7 @@ export default function App() {
             })}
             >
             <Tab.Screen name = "Home" component={Home}/>
-            <Tab.Screen name = "Statistics" component={Statistics} />
+            <Tab.Screen name = "Statistics" component={StatisticsStack} />
             <Tab.Screen name = "NewTransaction" component={NewTransaction} options={{ title: 'New Entry' }} />
             <Tab.Screen name = "Goals" component={Goals} />
             <Tab.Screen name = "Settings" component={Settings} />

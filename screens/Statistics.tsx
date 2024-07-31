@@ -2,7 +2,7 @@ import * as React from 'react';
 import { ScrollView, Text, View, StyleSheet, TouchableOpacity, Button } from 'react-native';
 import { Category, Transaction } from "../types";
 import { useSQLiteContext } from 'expo-sqlite/next';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { categoryColors, categoryEmojies } from '../constants'; // Import category colors and emojis
 import PieChart from 'react-native-pie-chart';
 import Card from "../components/ui/Card";
@@ -17,8 +17,11 @@ const colors = {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 15,
     backgroundColor: colors.background,
+  },
+  contentContainer: {
+    padding: 15,
+    paddingBottom: 50, // Ensure there's enough space for the content to scroll
   },
   text: {
     fontSize: 18,
@@ -117,6 +120,7 @@ export default function Statistics() {
   const [currentMonth, setCurrentMonth] = React.useState(new Date());
   const [categories, setCategories] = React.useState<Category[]>([]);
   const db = useSQLiteContext();
+  const navigation = useNavigation<any>(); 
 
   const fetchData = async () => {
     const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
@@ -194,55 +198,55 @@ export default function Statistics() {
   const chartColors = Object.keys(groupedTransactions).map(categoryId => categoryColors[categoryId] || '#000');
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={styles.contentContainer}>
       <Card>
-      <Text style={styles.currentMonthText}>Statistics for {readableMonth}</Text>
-      <Text style={styles.netBalanceText}>Net Balance: {netBalance < 0 ? '-' : '+'}${Math.abs(netBalance).toFixed(2)}</Text>
-      <View style={styles.navigationButtonContainer}>
-        <Button title="Previous Month" onPress={handlePreviousMonth} />
-        <Button title="Next Month" onPress={handleNextMonth} />
-      </View>
-      <View style={styles.cardContainer}>
-        <TouchableOpacity style={[styles.card, styles.expenseCard]} onPress={() => setFilter('Expense')}>
-          <Text style={styles.cardText}>Expense</Text>
-          <Text style={styles.cardAmount}>- ${totalExpenses.toFixed(2)}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.card, styles.incomeCard]} onPress={() => setFilter('Income')}>
-          <Text style={styles.cardText}>Income</Text>
-          <Text style={styles.cardAmount}>+ ${totalIncome.toFixed(2)}</Text>
-        </TouchableOpacity>
-      </View>
-      {chartData.reduce((a, b) => a + b, 0) > 0 ? (
-        <PieChart
-          widthAndHeight={150}
-          series={chartData}
-          sliceColor={chartColors}
-          coverRadius={0.6}
-          coverFill={colors.background}
-        />
-      ) : (
-        <Text style={styles.noDataText}>No transactions to display</Text>
-      )}
+        <Text style={styles.currentMonthText}>Statistics for {readableMonth}</Text>
+        <Text style={styles.netBalanceText}>Net Balance: {netBalance < 0 ? '-' : '+'}${Math.abs(netBalance).toFixed(2)}</Text>
+        <View style={styles.navigationButtonContainer}>
+          <Button title="Previous Month" onPress={handlePreviousMonth} />
+          <Button title="Next Month" onPress={handleNextMonth} />
+        </View>
+        <View style={styles.cardContainer}>
+          <TouchableOpacity style={[styles.card, styles.expenseCard]} onPress={() => setFilter('Expense')}>
+            <Text style={styles.cardText}>Expense</Text>
+            <Text style={styles.cardAmount}>- ${totalExpenses.toFixed(2)}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.card, styles.incomeCard]} onPress={() => setFilter('Income')}>
+            <Text style={styles.cardText}>Income</Text>
+            <Text style={styles.cardAmount}>+ ${totalIncome.toFixed(2)}</Text>
+          </TouchableOpacity>
+        </View>
+        {chartData.reduce((a, b) => a + b, 0) > 0 ? (
+          <PieChart
+            widthAndHeight={150}
+            series={chartData}
+            sliceColor={chartColors}
+            coverRadius={0.6}
+            coverFill={colors.background}
+          />
+        ) : (
+          <Text style={styles.noDataText}>No transactions to display</Text>
+        )}
       </Card>
       <Text style={styles.periodTitle}>Categories</Text>
       <Card>
-      {Object.keys(groupedTransactions).map(categoryId => {
-        const amount = groupedTransactions[categoryId].amount;
-        const type = groupedTransactions[categoryId].type;
-        const categoryName = categories.find(cat => cat.id.toString() === categoryId)?.name || "Unknown";
-        const emoji = categoryEmojies[categoryName] || '';
-        return (
-          <View key={categoryId} style={styles.categoryRow}>
-            <Text style={styles.categoryText}>{emoji} {categoryName}</Text>
-            <Text style={[styles.categoryAmount, { color: type === 'Expense' ? '#ff4500' : '#2e8b57' }]}>
-              {type === 'Expense' ? '-' : '+'}${amount.toFixed(2)}
-            </Text>
-          </View>
-        );
-      })}
+        {Object.keys(groupedTransactions).map(categoryId => {
+          const amount = groupedTransactions[categoryId].amount;
+          const type = groupedTransactions[categoryId].type;
+          const categoryName = categories.find(cat => cat.id.toString() === categoryId)?.name || "Unknown";
+          const emoji = categoryEmojies[categoryName] || '';
+          return (
+            <View key={categoryId} style={styles.categoryRow}>
+              <Text style={styles.categoryText}>{emoji} {categoryName}</Text>
+              <Text style={[styles.categoryAmount, { color: type === 'Expense' ? '#ff4500' : '#2e8b57' }]}>
+                {type === 'Expense' ? '-' : '+'}${amount.toFixed(2)}
+              </Text>
+            </View>
+          );
+        })}
       </Card>
       
-      <Button title="View Yearly Summary" onPress={() => { /* Implement navigation to yearly summary page */ }} />
+      <Button title="View Yearly Summary" onPress={() => navigation.navigate('Yearly Summary')} />
     </ScrollView>
   );
 }
