@@ -6,6 +6,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { categoryColors, categoryEmojies } from '../constants'; // Import category colors and emojis
 import PieChart from 'react-native-pie-chart';
 import Card from "../components/ui/Card";
+import { RootStackParamList } from '../navigationTypes';
 
 const colors = {
   primary: '#FCB900',
@@ -246,7 +247,7 @@ export default function Statistics() {
         })}
       </Card>
       
-      <Button title="View Yearly Summary" onPress={() => navigation.navigate('Yearly Summary')} />
+      <Button title="View Yearly Summary" onPress={() => navigation.navigate('YearlySummary')} />
     </ScrollView>
   );
 }

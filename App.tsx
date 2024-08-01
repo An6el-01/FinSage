@@ -5,19 +5,21 @@ import * as FileSystem from "expo-file-system";
 import { Asset } from "expo-asset";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from "@react-navigation/stack";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from '@expo/vector-icons';
+import { RootStackParamList } from './navigationTypes'; // Import the navigation types
 
 //Screens
 import Home from "./screens/Home";
 import Settings from "./screens/Settings";
 import Statistics from "./screens/Statistics";
 import Goals from "./screens/Goals";
-import NewTransaction from "./screens/NewTransaction"; // Import the NewTransaction page
+import NewTransaction from "./screens/NewTransaction";
 import YearlySummary from "./screens/YearlySummary";
+import GoalDetails from "./screens/GoalDetails";
 
 const Tab = createBottomTabNavigator();
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>(); // Use the navigation types
 
 const colors = {
   primary: '#FCB900',
@@ -52,11 +54,19 @@ const loadDatabase = async () => {
 const StatisticsStack = () => {
   return(
     <Stack.Navigator>
-    <Stack.Screen name="Statistics Main " component={Statistics}/>
-    <Stack.Screen name="Yearly Summary" component={YearlySummary}/> 
+    <Stack.Screen name="StatisticsMain" component={Statistics}/>
+    <Stack.Screen name="YearlySummary" component={YearlySummary}/> 
   </Stack.Navigator>
   );
-  
+}
+
+const GoalsStack = () => {
+  return(
+    <Stack.Navigator>
+      <Stack.Screen name="GoalsMain" component={Goals}/>
+      <Stack.Screen name="GoalDetails" component={GoalDetails}/>
+    </Stack.Navigator>
+  )
 }
 
 export default function App() {
@@ -111,7 +121,7 @@ export default function App() {
             <Tab.Screen name = "Home" component={Home}/>
             <Tab.Screen name = "Statistics" component={StatisticsStack} />
             <Tab.Screen name = "NewTransaction" component={NewTransaction} options={{ title: 'New Entry' }} />
-            <Tab.Screen name = "Goals" component={Goals} />
+            <Tab.Screen name = "Goals" component={GoalsStack} />
             <Tab.Screen name = "Settings" component={Settings} />
           </Tab.Navigator>
         </SQLiteProvider>        
