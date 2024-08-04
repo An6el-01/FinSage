@@ -16,7 +16,6 @@ import Statistics from "./screens/Statistics";
 import Goals from "./screens/Goals";
 import NewTransaction from "./screens/NewTransaction";
 import YearlySummary from "./screens/YearlySummary";
-import GoalDetails from "./screens/GoalDetails";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>(); // Use the navigation types
@@ -60,14 +59,7 @@ const StatisticsStack = () => {
   );
 }
 
-const GoalsStack = () => {
-  return(
-    <Stack.Navigator>
-      <Stack.Screen name="GoalsMain" component={Goals}/>
-      <Stack.Screen name="GoalDetails" component={GoalDetails}/>
-    </Stack.Navigator>
-  )
-}
+
 
 export default function App() {
   const [dbLoaded, setDbLoaded] = React.useState<boolean>(false);
@@ -121,7 +113,7 @@ export default function App() {
             <Tab.Screen name = "Home" component={Home}/>
             <Tab.Screen name = "Statistics" component={StatisticsStack} />
             <Tab.Screen name = "NewTransaction" component={NewTransaction} options={{ title: 'New Entry' }} />
-            <Tab.Screen name = "Goals" component={GoalsStack} />
+            <Tab.Screen name = "Goals" component={Goals} />
             <Tab.Screen name = "Settings" component={Settings} />
           </Tab.Navigator>
         </SQLiteProvider>        

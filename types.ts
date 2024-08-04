@@ -18,19 +18,11 @@ export interface Transaction {
     totalIncome: number;
   }
 
-  export type SubGoal = {
-    id: number;
-    name: string;
-    amount: number;
-    progress: number;
-  }
-
   export type Goal = {
     id: number;
     name: string;
     amount: number;
     progress: number;
-    subGoals?: SubGoal[];
   };
   
 
