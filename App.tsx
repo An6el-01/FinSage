@@ -13,7 +13,7 @@ import { RootStackParamList } from './navigationTypes'; // Import the navigation
 import Home from "./screens/Home";
 import Settings from "./screens/Settings";
 import Statistics from "./screens/Statistics";
-import Goals from "./screens/Goals";
+import Money from "./screens/Money";
 import NewTransaction from "./screens/NewTransaction";
 import YearlySummary from "./screens/YearlySummary";
 
@@ -60,7 +60,6 @@ const StatisticsStack = () => {
 }
 
 
-
 export default function App() {
   const [dbLoaded, setDbLoaded] = React.useState<boolean>(false);
 
@@ -97,8 +96,8 @@ export default function App() {
                   iconName = focused ? "home" : "home-outline";
                 }else if (route.name === "Statistics"){
                   iconName =  focused ? "bar-chart" : "bar-chart-outline";
-                }else if(route.name === "Goals"){
-                  iconName = focused ? "trophy" : "trophy-outline";
+                }else if(route.name === "Money Up"){
+                  iconName = focused ? "cash" : "cash-outline";
                 }else if (route.name === "Settings"){
                   iconName =  focused ? "settings" : "settings-outline";
                 }else if (route.name === "NewTransaction") {
@@ -113,7 +112,7 @@ export default function App() {
             <Tab.Screen name = "Home" component={Home}/>
             <Tab.Screen name = "Statistics" component={StatisticsStack} />
             <Tab.Screen name = "NewTransaction" component={NewTransaction} options={{ title: 'New Entry' }} />
-            <Tab.Screen name = "Goals" component={Goals} />
+            <Tab.Screen name = "Money Up" component={Money} />
             <Tab.Screen name = "Settings" component={Settings} />
           </Tab.Navigator>
         </SQLiteProvider>        

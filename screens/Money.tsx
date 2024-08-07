@@ -139,7 +139,7 @@ const formatCurrency = (value: number) => {
   return `$${value.toFixed(2)}`;
 };
 
-export default function Goals() {
+export default function Money() {
   const { getGoals, insertGoal, updateGoal, deleteGoal, depositGoal } = useGoalDataAccess();
   const [goals, setGoals] = React.useState<Goal[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);
