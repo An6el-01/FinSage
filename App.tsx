@@ -7,18 +7,19 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from '@expo/vector-icons';
-import { RootStackParamList } from './navigationTypes'; // Import the navigation types
+import { RootStackParamList } from './navigationTypes';
 
 //Screens
 import Home from "./screens/Home";
 import Settings from "./screens/Settings";
 import Statistics from "./screens/Statistics";
-import Money from "./screens/Money";
 import NewTransaction from "./screens/NewTransaction";
 import YearlySummary from "./screens/YearlySummary";
+import FinancialGoals from "./screens/FinancialGoals";
+import Budgeting from "./screens/Budgeting";
 
 const Tab = createBottomTabNavigator();
-const Stack = createNativeStackNavigator<RootStackParamList>(); // Use the navigation types
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const colors = {
   primary: '#FCB900',
@@ -53,12 +54,21 @@ const loadDatabase = async () => {
 const StatisticsStack = () => {
   return(
     <Stack.Navigator>
-    <Stack.Screen name="StatisticsMain" component={Statistics}/>
-    <Stack.Screen name="YearlySummary" component={YearlySummary}/> 
-  </Stack.Navigator>
+      <Stack.Screen name="StatisticsMain" component={Statistics}/>
+      <Stack.Screen name="YearlySummary" component={YearlySummary}/> 
+    </Stack.Navigator>
   );
 }
 
+const HomeStack = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name="HomeMain" component={Home} />
+      <Stack.Screen name="FinancialGoals" component={FinancialGoals} />
+      <Stack.Screen name="Budgeting" component={Budgeting} />
+    </Stack.Navigator>
+  );
+}
 
 export default function App() {
   const [dbLoaded, setDbLoaded] = React.useState<boolean>(false);
@@ -76,6 +86,7 @@ export default function App() {
         <Text>Loading Database...</Text>
       </View>
     );
+
   return (
     <NavigationContainer>
       <React.Suspense
@@ -94,13 +105,11 @@ export default function App() {
 
                 if (route.name === "Home"){
                   iconName = focused ? "home" : "home-outline";
-                }else if (route.name === "Statistics"){
+                } else if (route.name === "Statistics"){
                   iconName =  focused ? "bar-chart" : "bar-chart-outline";
-                }else if(route.name === "Money Up"){
-                  iconName = focused ? "cash" : "cash-outline";
-                }else if (route.name === "Settings"){
+                } else if (route.name === "Settings"){
                   iconName =  focused ? "settings" : "settings-outline";
-                }else if (route.name === "NewTransaction") {
+                } else if (route.name === "NewTransaction") {
                   iconName = focused ? "add-circle" : "add-circle-outline";
                 }
                 return <Ionicons name={iconName as "key"} size={size} color={color} />;
@@ -109,11 +118,10 @@ export default function App() {
               tabBarInactiveTintColor: colors.text,
             })}
             >
-            <Tab.Screen name = "Home" component={Home}/>
-            <Tab.Screen name = "Statistics" component={StatisticsStack} />
-            <Tab.Screen name = "NewTransaction" component={NewTransaction} options={{ title: 'New Entry' }} />
-            <Tab.Screen name = "Money Up" component={Money} />
-            <Tab.Screen name = "Settings" component={Settings} />
+            <Tab.Screen name="Home" component={HomeStack}/>
+            <Tab.Screen name="Statistics" component={StatisticsStack} />
+            <Tab.Screen name="NewTransaction" component={NewTransaction} options={{ title: 'New Entry' }} />
+            <Tab.Screen name="Settings" component={Settings} />
           </Tab.Navigator>
         </SQLiteProvider>        
       </React.Suspense>

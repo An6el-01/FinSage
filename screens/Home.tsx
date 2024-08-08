@@ -1,21 +1,102 @@
 import * as React from "react";
-import { ScrollView, StyleSheet, Text, TextStyle, Platform, View, Button } from "react-native";
-import { useFocusEffect } from '@react-navigation/native'; // Import the useFocusEffect hook
+import { ScrollView, StyleSheet, Text, TextStyle, Platform, View, Button, Dimensions, TouchableOpacity } from "react-native";
+import { useFocusEffect } from '@react-navigation/native';
 import { Category, Transaction, TransactionsByMonth } from "../types";
 import { useSQLiteContext } from "expo-sqlite/next";
-import TransactionList from "../components/TransactionsList";
 import Card from "../components/ui/Card";
-import AddTransaction from "../components/AddTransaction";
-import PieChart from 'react-native-pie-chart'; // Import the pie chart library
-import { Dimensions } from 'react-native';
-import { categoryColors, categoryEmojies } from '../constants'; // Import category colors and emojis
+import PieChart from 'react-native-pie-chart';
+import { categoryColors, categoryEmojies } from '../constants';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { RootStackParamList } from '../navigationTypes';
 
 const colors = {
   primary: '#FCB900',
   secondary: '#F9A800',
   text: '#212121',
   background: '#F5F5F5',
+  cardBackground: '#FFFFFF',
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 15,
+    backgroundColor: colors.background,
+  },
+  text: {
+    fontSize: 18,
+    color: colors.text,
+    marginBottom: 10,
+  },
+  card: {
+    padding: 20,
+    borderRadius: 8,
+    backgroundColor: colors.cardBackground,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    alignItems: 'center',
+  },
+  cardText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.text,
+  },
+  summaryText: {
+    fontSize: 18,
+    color: colors.text,
+    marginBottom: 10,
+  },
+  periodTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: colors.text,
+    marginBottom: 15,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  noDataText: {
+    fontSize: 18,
+    color: colors.text,
+    marginTop: 20,
+    textAlign: 'center',
+  },
+  pillsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  pill: {
+    paddingVertical: 5,
+    paddingHorizontal: 15,
+    borderRadius: 20,
+    margin: 5,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pillText: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  pillAmount: {
+    fontSize: 14,
+    color: '#fff',
+    textAlign: 'center',
+  },
+});
 
 export default function Home() {
   const [categories, setCategories] = React.useState<Category[]>([]);
@@ -27,6 +108,7 @@ export default function Home() {
   const [currentMonth, setCurrentMonth] = React.useState(new Date());
 
   const db = useSQLiteContext();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   useFocusEffect(
     React.useCallback(() => {
@@ -68,31 +150,6 @@ export default function Home() {
     setTransactionsByMonth(transactionsByMonth[0]);
   }
 
-  async function deleteTransaction(id: number) {
-    db.withTransactionAsync(async () => {
-      await db.runAsync(`DELETE FROM Transactions WHERE id = ?;`, [id]);
-      await getData();
-    });
-  }
-
-  async function insertTransaction(transaction: Transaction) {
-    db.withTransactionAsync(async () => {
-      await db.runAsync(
-        `
-        INSERT INTO Transactions (category_id, amount, date, description, type) VALUES (?, ?, ?, ?, ?);
-      `,
-        [
-          transaction.category_id,
-          transaction.amount,
-          transaction.date,
-          transaction.description,
-          transaction.type,
-        ]
-      );
-      await getData();
-    });
-  }
-
   const handlePreviousMonth = () => {
     setCurrentMonth(prevMonth => {
       const newMonth = new Date(prevMonth.getFullYear(), prevMonth.getMonth() - 1, 1);
@@ -118,15 +175,12 @@ export default function Home() {
         handlePreviousMonth={handlePreviousMonth}
         handleNextMonth={handleNextMonth}
       />
-      <AddTransaction insertTransaction={insertTransaction} />
-      <View style={styles.transactionList}>
-        <Text style={styles.periodTitle}>Transactions</Text>
-        <TransactionList
-          categories={categories}
-          transactions={transactions}
-          deleteTransaction={deleteTransaction}
-        />
-      </View>
+      <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('FinancialGoals')}>
+        <Text style={styles.cardText}>Financial Goals</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Budgeting')}>
+        <Text style={styles.cardText}>Budgeting</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -204,63 +258,19 @@ function TransactionSummary({
           sliceColor={chartColors}
           coverRadius={0.8}
           coverFill={colors.background}
+          
         />
       ) : (
         <Text style={styles.noDataText}>No transactions to display</Text>
       )}
-      {Object.values(data).map((item, index) => (
-        <Card key={index} style={{ ...styles.categoryCard, backgroundColor: item.color }}>
-          <Text style={styles.categoryText}>{item.emoji} {item.name}</Text>
-          <Text style={styles.categoryAmount}>{formatMoney(item.amount)}</Text>
-        </Card>
-      ))}
+      <View style={styles.pillsContainer}>
+        {Object.values(data).map((item, index) => (
+          <View key={index} style={{ ...styles.pill, backgroundColor: item.color }}>
+            <Text style={styles.pillText}>{item.emoji} {item.name}</Text>
+            <Text style={styles.pillAmount}>{formatMoney(item.amount)}</Text>
+          </View>
+        ))}
+      </View>
     </Card>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 15,
-    paddingBottom: 20,
-  },
-  summaryText: {
-    fontSize: 18,
-    color: colors.text,
-    marginBottom: 10,
-  },
-  periodTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: colors.text,
-    marginBottom: 15,
-  },
-  transactionList: {
-    marginBottom: 15,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-  },
-  noDataText: {
-    fontSize: 18,
-    color: colors.text,
-    marginTop: 20,
-    textAlign: 'center',
-  },
-  categoryCard: {
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  categoryText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  categoryAmount: {
-    fontSize: 16,
-    color: '#fff',
-  },
-});
