@@ -8,6 +8,7 @@ import PieChart from 'react-native-pie-chart';
 import { categoryColors, categoryEmojies } from '../constants';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../navigationTypes';
+import { Budget } from "../types";
 
 const colors = {
   primary: '#FCB900',

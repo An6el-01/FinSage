@@ -35,6 +35,17 @@ const styles = StyleSheet.create({
   },
 });
 
+const deleteExistingDatabase = async () => {
+  const dbName = "mySQLiteDB.db";
+  const dbFilePath = `${FileSystem.documentDirectory}SQLite/${dbName}`;
+
+  const fileInfo = await FileSystem.getInfoAsync(dbFilePath);
+  if (fileInfo.exists) {
+    await FileSystem.deleteAsync(dbFilePath);
+    console.log("Deleted existing database file");
+  }
+}
+
 const loadDatabase = async () => {
   const dbName = "mySQLiteDB.db";
   const dbAsset = require("./assets/mySQLiteDB.db");
@@ -48,8 +59,12 @@ const loadDatabase = async () => {
       { intermediates: true }
     );
     await FileSystem.downloadAsync(dbUri, dbFilePath);
+    console.log('Database copied from assets.');
+  } else {
+    console.log('Database already exists, no need to copy.');
   }
 };
+
 
 const StatisticsStack = () => {
   return(

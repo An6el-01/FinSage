@@ -25,7 +25,12 @@ export interface Transaction {
     progress: number;
   };
   
-
+  export type Budget = {
+    id: number;
+    category_id: number,
+    amount: number,
+    spent: number,
+    type: "monthly" | "weekly";
+  }
  
-  
   

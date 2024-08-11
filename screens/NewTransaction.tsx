@@ -4,9 +4,13 @@ import Card from '../components/ui/Card';
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useSQLiteContext } from 'expo-sqlite/next';
 import { Category, Transaction } from '../types';
+import { useGoalDataAccess } from '../database/useGoalDataAccess';
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'; // date-fns for date manipulation
+
 
 export default function NewTransaction() {
   const db = useSQLiteContext();
+  const { getBudgets, updateBudget, getTransactionsForCategory } = useGoalDataAccess(); // Use data access functions
   const [currentTab, setCurrentTab] = React.useState<number>(0);
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [typeSelected, setTypeSelected] = React.useState<string>("");
@@ -45,15 +49,37 @@ export default function NewTransaction() {
     });
   };
 
+  const refreshBudget = async (categoryId: number) => {
+    const budgets = await getBudgets();
+    const budget = budgets.find(b => b.category_id === categoryId);
+    
+    if (budget) {
+        const startDate = budget.type === 'weekly' ? startOfWeek(new Date()) : startOfMonth(new Date());
+        const endDate = budget.type === 'weekly' ? endOfWeek(new Date()) : endOfMonth(new Date());
+
+        const transactions = await getTransactionsForCategory(categoryId, startDate, endDate);
+        console.log('Transactions for category:', transactions);
+
+        const spent = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+        console.log('Calculated spent amount:', spent);
+
+        await updateBudget(categoryId, budget.amount, budget.type); // Assuming this updates the spent amount
+    }
+};
+
+
   async function handleSave() {
-    await insertTransaction({
+    const transaction = {
       id: 0, // Temporary id as placeholder
       amount: Number(amount),
       description,
       category_id: categoryId,
-      date: new Date().getTime() / 1000,
+      date: new Date().getTime(),
       type: category as "Expense" | "Income",
-    });
+    };
+
+    await insertTransaction(transaction);
+    await refreshBudget(transaction.category_id); // Refresh the budget after inserting a transaction
     setAmount("");
     setDescription("");
     setCategory("Expense");

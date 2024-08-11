@@ -1,12 +1,13 @@
 import * as React from 'react';
-import { ScrollView, Text, View, StyleSheet, Button, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { Category } from '../types';
-import { useGoalDataAccess } from '../dataHandling/useGoalDataAccess';
+import { ScrollView, Text, View, StyleSheet, Button, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
+import { Category, Budget, Transaction } from '../types';
+import { useGoalDataAccess } from '../database/useGoalDataAccess';
 import Card from '../components/ui/Card';
-import CustomSlider from '../components/ui/CustomSlider';
 import ProgressBar from '../components/ui/ProgressBar';
 import AddBudget from '../components/ui/AddBudget';
+import EditBudgetModal from '../components/ui/EditBudgetModal';
 import { Ionicons } from '@expo/vector-icons';
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'; // date-fns for date manipulation
 
 const colors = {
   primary: "#FCB900",
@@ -92,15 +93,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.background,
   },
-  pillsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  selectedPill: {
-    backgroundColor: colors.secondary,
-  },
   budgetFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -111,52 +103,169 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.text,
   },
-  editIcon: {
-    position: 'absolute',
-    right: 10,
+  iconContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconWrapper: {
+    alignItems: 'center',
+    marginHorizontal: 5, 
+  },
+  iconText: {
+    fontSize: 10,
+    color: colors.text,
+    textAlign: 'center',
   },
 });
 
 const Budgeting = () => {
-  const { getCategories } = useGoalDataAccess();
+  const { getCategories, insertBudget, getBudgets, deleteBudget, updateBudget, getTransactionsForCategory } = useGoalDataAccess();
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [budgets, setBudgets] = React.useState<{ [key: string]: { monthly: number | null, weekly: number | null, spent: number, type: 'monthly' | 'weekly' } }>({});
   const [loading, setLoading] = React.useState<boolean>(true);
   const [showAddBudget, setShowAddBudget] = React.useState<boolean>(false);
+  const [editModalVisible, setEditModalVisible] = React.useState<boolean>(false);
+  const [editCategory, setEditCategory] = React.useState<string>('');
+  const [initialAmount, setInitialAmount] = React.useState<string>('');
+  const [initialType, setInitialType] = React.useState<'monthly' | 'weekly'>('monthly');
 
   React.useEffect(() => {
-    loadCategories();
+    // Load categories first, then load budgets and calculate spent amounts
+    const loadInitialData = async () => {
+      const fetchedCategories = await getCategories();
+      setCategories(fetchedCategories);
+      
+      const fetchedBudgets = await getBudgets();
+      const budgetMap = await Promise.all(
+        fetchedBudgets.map(async (budget) => {
+          const category = fetchedCategories.find(cat => cat.id === budget.category_id);
+          if (category) {
+            let startDate, endDate;
+            if (budget.type === 'weekly') {
+              startDate = startOfWeek(new Date());
+              endDate = endOfWeek(new Date());
+            } else {
+              startDate = startOfMonth(new Date());
+              endDate = endOfMonth(new Date());
+            }
+
+            const transactions = await getTransactionsForCategory(budget.category_id, startDate, endDate);
+            const spent = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+
+            return {
+              [category.name]: {
+                monthly: budget.type === 'monthly' ? budget.amount : null,
+                weekly: budget.type === 'weekly' ? budget.amount : null,
+                spent,
+                type: budget.type,
+              },
+            };
+          }
+        })
+      );
+
+      setBudgets(Object.assign({}, ...budgetMap));
+      setLoading(false);
+    };
+
+    loadInitialData();
   }, []);
 
-  const loadCategories = async () => {
-    setLoading(true);
-    const fetchedCategories = await getCategories();
-    setCategories(fetchedCategories.filter((category: Category) => category.type === 'Expense'));
-    setLoading(false);
+  const handleAddBudget = async (categoryName: string, type: 'monthly' | 'weekly', amount: number) => {
+    const category = categories.find(cat => cat.name === categoryName);
+    if (category) {
+      await insertBudget(category.id, amount, type);
+      await loadBudgets(); // Reload budgets from the database
+      setShowAddBudget(false);
+    }
   };
 
-  const handleAddBudget = (category: string, type: 'monthly' | 'weekly', amount: number) => {
-    setBudgets({
-      ...budgets,
-      [category]: {
-        ...budgets[category],
-        [type]: amount,
-        spent: 0,
-        type: type,
-      },
-    });
-    setShowAddBudget(false);
+  const loadBudgets = async () => {
+    const fetchedBudgets = await getBudgets();
+    const budgetMap = await Promise.all(
+      fetchedBudgets.map(async (budget) => {
+        const category = categories.find(cat => cat.id === budget.category_id);
+        if (category) {
+          let startDate, endDate;
+          if (budget.type === 'weekly') {
+            startDate = startOfWeek(new Date());
+            endDate = endOfWeek(new Date());
+          } else {
+            startDate = startOfMonth(new Date());
+            endDate = endOfMonth(new Date());
+          }
+
+          const transactions = await getTransactionsForCategory(budget.category_id, startDate, endDate);
+          const spent = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+
+          return {
+            [category.name]: {
+              monthly: budget.type === 'monthly' ? budget.amount : null,
+              weekly: budget.type === 'weekly' ? budget.amount : null,
+              spent,
+              type: budget.type,
+            },
+          };
+        }
+      })
+    );
+
+    setBudgets(Object.assign({}, ...budgetMap));
   };
 
-  const handleEditBudget = (category: string) => {
-    // Implement edit functionality here
+  const handleEditBudget = async (newAmount: number, newType: 'monthly' | 'weekly') => {
+    const budget = budgets[editCategory];
+    if (!budget) return;
+
+    const categoryData = categories.find(cat => cat.name === editCategory);
+    if (categoryData) {
+        await updateBudget(categoryData.id, newAmount, newType);
+        await loadBudgets(); // Reload budgets after editing
+        setEditModalVisible(false); // Close the modal after saving
+    }
+};
+
+  const handleSaveBudget = async (newAmount: number, newType: 'monthly' | 'weekly') => {
+    const categoryData = categories.find(cat => cat.name === editCategory);
+    if (categoryData) {
+      await updateBudget(categoryData.id, newAmount, newType);
+      await loadBudgets(); // Reload budgets after editing
+      setEditModalVisible(false);
+    }
+  };
+
+  const handleDeleteBudget = (category: string) => {
+    const budget = budgets[category];
+    if (!budget) return;
+
+    Alert.alert(
+      "Delete Budget",
+      `Are you sure you want to delete the ${category} budget?`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Delete",
+          onPress: async () => {
+            const categoryData = categories.find(cat => cat.name === category);
+            if (categoryData) {
+              await deleteBudget(categoryData.id, budget.type);
+              await loadBudgets(); // Reload budgets after deletion
+            }
+          },
+          style: "destructive"
+        }
+      ]
+    );
   };
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text>Loading Categories...</Text>
+        <Text>Loading Budgets...</Text>
       </View>
     );
   }
@@ -179,9 +288,27 @@ const Budgeting = () => {
               <Text style={styles.budgetTitle}>{category} Budget:</Text>
               <Text style={styles.budgetAmount}>${budgets[category][budgets[category].type]}</Text>
             </View>
-            <TouchableOpacity style={styles.editIcon} onPress={() => handleEditBudget(category)}>
-              <Ionicons name="pencil" size={20} color={colors.primary} />
-            </TouchableOpacity>
+            <View style={styles.iconContainer}>
+              <TouchableOpacity
+                style={styles.iconWrapper}
+                onPress={() => {
+                  const budget = budgets[category];
+                  if (budget) {
+                    setEditCategory(category);
+                    setInitialAmount(String(budget[budget.type]));
+                    setInitialType(budget.type);
+                    setEditModalVisible(true);
+                  }
+                }}
+              >
+                <Ionicons name="pencil" size={20} color={colors.primary} />
+                <Text style={styles.iconText}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.iconWrapper} onPress={() => handleDeleteBudget(category)}>
+                <Ionicons name="trash" size={20} color={colors.primary} />
+                <Text style={styles.iconText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
           </View>
           <ProgressBar progress={budgets[category][budgets[category].type] ? budgets[category].spent / budgets[category][budgets[category].type]! : 0} />
           <View style={styles.budgetFooter}>
@@ -194,6 +321,14 @@ const Budgeting = () => {
           </View>
         </Card>
       ))}
+      <EditBudgetModal
+        visible={editModalVisible}
+        onClose={() => setEditModalVisible(false)}
+        onSave={handleSaveBudget}  // Pass the correct handler
+        category={editCategory}
+        initialAmount={initialAmount}
+        initialType={initialType} // Pass the initial type
+      />
     </ScrollView>
   );
 };

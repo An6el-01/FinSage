@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { ScrollView, Text, View, StyleSheet, Button, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { Goal } from '../types';
-import { useGoalDataAccess } from "../components/GoalDataAccess";
+import { useGoalDataAccess } from "../database/GoalDataAccess";
 import Card from '../components/ui/Card';
 import AddGoal from '../components/AddGoal';
 import UpdateGoal from '../components/UpdateGoal';
