@@ -52,7 +52,6 @@ export const useGoalDataAccess = () => {
     };
 
     const updateBudget = async (categoryId: number, amount: number, type: 'monthly' | 'weekly') => {
-        console.log('Updating budget for category:', categoryId, 'with amount:', amount, 'and type:', type);
         await db.runAsync(
             `UPDATE Budgets SET amount = ?, spent = (SELECT SUM(amount) FROM Transactions WHERE category_id = ? AND type = ?) WHERE category_id = ? AND type = ?;`,
             [amount, categoryId, type, categoryId, type]
@@ -67,12 +66,10 @@ export const useGoalDataAccess = () => {
         );
     };
     const getTransactionsForCategory = async (categoryId: number, startDate: Date, endDate: Date): Promise<Transaction[]> => {
-        console.log('Querying transactions between', startDate, 'and', endDate, 'for category:', categoryId);
         const results = await db.getAllAsync<Transaction>(
             'SELECT * FROM Transactions WHERE category_id = ? AND date BETWEEN ? AND ?',
             [categoryId, startDate.getTime(), endDate.getTime()]
         );
-        console.log('Retrieved transactions:', results);
         return results;
     };
     

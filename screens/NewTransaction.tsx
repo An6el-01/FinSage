@@ -56,13 +56,8 @@ export default function NewTransaction() {
     if (budget) {
         const startDate = budget.type === 'weekly' ? startOfWeek(new Date()) : startOfMonth(new Date());
         const endDate = budget.type === 'weekly' ? endOfWeek(new Date()) : endOfMonth(new Date());
-
         const transactions = await getTransactionsForCategory(categoryId, startDate, endDate);
-        console.log('Transactions for category:', transactions);
-
         const spent = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
-        console.log('Calculated spent amount:', spent);
-
         await updateBudget(categoryId, budget.amount, budget.type); // Assuming this updates the spent amount
     }
 };
