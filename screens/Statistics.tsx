@@ -128,20 +128,22 @@ export default function Statistics() {
     const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
     endOfMonth.setMilliseconds(endOfMonth.getMilliseconds() - 1);
 
-    const startOfMonthTimestamp = Math.floor(startOfMonth.getTime() / 1000);
-    const endOfMonthTimestamp = Math.floor(endOfMonth.getTime() / 1000);
+    const startOfMonthTimestamp = Math.floor(startOfMonth.getTime());
+    const endOfMonthTimestamp = Math.floor(endOfMonth.getTime());
 
     const result = await db.getAllAsync<Transaction>(
       `SELECT * FROM Transactions WHERE date >= ? AND date <= ? ORDER BY date DESC;`,
       [startOfMonthTimestamp, endOfMonthTimestamp]
     );
+    console.log("Transactions fetched in Statistics.tsx:", result); // Debugging log
     setData(result);
 
     const categoriesResult = await db.getAllAsync<Category>(
       `SELECT * FROM Categories;`
     );
     setCategories(categoriesResult);
-  };
+};
+
 
   useFocusEffect(
     React.useCallback(() => {

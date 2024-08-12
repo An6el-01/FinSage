@@ -9,6 +9,7 @@ import { categoryColors, categoryEmojies } from '../constants';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../navigationTypes';
 import { Budget } from "../types";
+import * as Notifications from 'expo-notifications';
 
 const colors = {
   primary: '#FCB900',
@@ -124,13 +125,14 @@ export default function Home() {
     const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
     endOfMonth.setMilliseconds(endOfMonth.getMilliseconds() - 1);
 
-    const startOfMonthTimestamp = Math.floor(startOfMonth.getTime() / 1000);
-    const endOfMonthTimestamp = Math.floor(endOfMonth.getTime() / 1000);
+    const startOfMonthTimestamp = Math.floor(startOfMonth.getTime());
+    const endOfMonthTimestamp = Math.floor(endOfMonth.getTime());
 
     const result = await db.getAllAsync<Transaction>(
       `SELECT * FROM Transactions WHERE date >= ? AND date <= ? ORDER BY date DESC;`,
       [startOfMonthTimestamp, endOfMonthTimestamp]
     );
+    console.log("Transactions fetched in Home.tsx:", result); // Debugging log
     setTransactions(result);
 
     const categoriesResult = await db.getAllAsync<Category>(
@@ -148,8 +150,10 @@ export default function Home() {
     `,
       [startOfMonthTimestamp, endOfMonthTimestamp]
     );
+    console.log("Transactions by month fetched in Home.tsx:", transactionsByMonth); // Debugging log
     setTransactionsByMonth(transactionsByMonth[0]);
-  }
+}
+
 
   const handlePreviousMonth = () => {
     setCurrentMonth(prevMonth => {
@@ -164,6 +168,24 @@ export default function Home() {
       return newMonth;
     });
   };
+
+  const triggerNotification = async () => {
+    console.log("Trying to send Notification");
+    try{
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "BudgetBee Notification",
+          body: "This is a test notification triggered by pressing the button!",
+        },
+        trigger: {seconds: 5},
+      });
+      console.log("Notification should have been sent");
+    } catch (error) {
+      console.log("Error while sending notification", error);
+    }
+    
+  };
+  
 
   return (
     <ScrollView contentContainerStyle={{ padding: 15, paddingVertical: Platform.OS === 'ios' ? 17 : 17 }}>
@@ -182,6 +204,7 @@ export default function Home() {
       <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Budgeting')}>
         <Text style={styles.cardText}>Budgeting</Text>
       </TouchableOpacity>
+      <Button title="Send Test Notification" onPress={triggerNotification} />
     </ScrollView>
   );
 }
