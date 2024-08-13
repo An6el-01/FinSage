@@ -31,13 +31,8 @@ export const useGoalDataAccess = () => {
     const deleteGoal = async (id: number) => {
         await db.runAsync('DELETE FROM Goals WHERE id = ?;', [id]);
     };
-
-    const depositGoal = async (goal: Goal, amount: number) => {
-        await db.runAsync(
-            'UPDATE Goals SET progress = progress + ? WHERE id = ?;',
-            [amount, goal.id]
-        );
-    };
+    
+    
 
     const insertBudget = async (categoryId: number, amount: number, type: 'monthly' | 'weekly') => {
         await db.runAsync(
@@ -46,7 +41,7 @@ export const useGoalDataAccess = () => {
         );
       };
 
-      const getBudgets = async (): Promise<Budget[]> => {
+    const getBudgets = async (): Promise<Budget[]> => {
         const results = await db.getAllAsync<Budget>('SELECT * FROM Budgets');
         return results;
     };
@@ -57,7 +52,6 @@ export const useGoalDataAccess = () => {
             [amount, categoryId, type, categoryId, type]
         );
     };
-    
 
     const deleteBudget = async (categoryId: number, type: 'monthly' | 'weekly') => {
         await db.runAsync(
@@ -65,6 +59,7 @@ export const useGoalDataAccess = () => {
             [categoryId, type]
         );
     };
+    
     const getTransactionsForCategory = async (categoryId: number, startDate: Date, endDate: Date): Promise<Transaction[]> => {
         const results = await db.getAllAsync<Transaction>(
             'SELECT * FROM Transactions WHERE category_id = ? AND date BETWEEN ? AND ?',
@@ -72,7 +67,6 @@ export const useGoalDataAccess = () => {
         );
         return results;
     };
-    
       
     return {
         getGoals,
@@ -80,7 +74,6 @@ export const useGoalDataAccess = () => {
         insertGoal,
         updateGoal,
         deleteGoal,
-        depositGoal,
         insertBudget,
         getBudgets,
         deleteBudget,

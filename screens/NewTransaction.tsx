@@ -6,6 +6,8 @@ import { useSQLiteContext } from 'expo-sqlite/next';
 import { Category, Transaction } from '../types';
 import { useGoalDataAccess } from '../database/useGoalDataAccess';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'; // date-fns for date manipulation
+import * as Notifications from 'expo-notifications';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export default function NewTransaction() {
@@ -59,9 +61,40 @@ export default function NewTransaction() {
         const transactions = await getTransactionsForCategory(categoryId, startDate, endDate);
         const spent = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
         await updateBudget(categoryId, budget.amount, budget.type); // Assuming this updates the spent amount
+        await checkBudgetNotifications(categories.find(cat => cat.id === categoryId)!.name, spent, budget.amount);
     }
-};
+  };
 
+  const checkBudgetNotifications = async (categoryName: string, spent: number, budgetAmount: number) => {
+    const percentageSpent = (spent / budgetAmount) * 100;
+    const budgetNotificationsEnabled = JSON.parse(await AsyncStorage.getItem('budgetNotificationsEnabled') || 'true');
+
+    if (!budgetNotificationsEnabled) {
+      return; // Exit if notifications are disabled
+    }
+
+    if (percentageSpent >= 90 && percentageSpent < 100) {
+      scheduleNotification(
+        `Warning!`,
+        `You've spent ${percentageSpent.toFixed(2)}% of your budget in the ${categoryName} category.`
+      );
+    } else if (percentageSpent >= 100) {
+      scheduleNotification(
+        `Exceeded Budget for ${categoryName}`,
+        `You've spent more than your allocated budget in the ${categoryName} category.`
+      );
+    }
+  };
+
+  const scheduleNotification = async (title: string, body: string) => {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title,
+        body,
+      },
+      trigger: null, // Send immediately
+    });
+  };
 
   async function handleSave() {
     const transaction = {

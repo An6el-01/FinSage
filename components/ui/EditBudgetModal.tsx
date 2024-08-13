@@ -1,30 +1,46 @@
 import React, { useState } from 'react';
-import { Modal, View, Text, TextInput, Button, StyleSheet, TouchableOpacity } from 'react-native';
+import { Modal, View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { Category, Budget } from '../../types'; // Import the Category and Budget types
 
 interface EditBudgetModalProps {
   visible: boolean;
   onClose: () => void;
-  onSave: (newAmount: number, newType: 'monthly' | 'weekly') => void;
+  updateBudget: (categoryId: number, amount: number, type: 'monthly' | 'weekly') => Promise<void>; // Expect 3 arguments
+  loadBudgets: () => Promise<void>;
+  budgets: { [key: string]: Budget };  // Add budgets here
+  categories: Category[];  // Use the imported Category type here
   category: string;
   initialAmount: string;
-  initialType: 'monthly' | 'weekly';
 }
 
 const EditBudgetModal: React.FC<EditBudgetModalProps> = ({
   visible,
   onClose,
-  onSave,
+  updateBudget,
+  loadBudgets,
+  budgets,  // Receive budgets as a prop
+  categories,  // Receive categories as a prop
   category,
   initialAmount,
-  initialType,
 }) => {
   const [amount, setAmount] = useState(initialAmount);
-  const [type, setType] = useState<'monthly' | 'weekly'>(initialType);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const parsedAmount = parseFloat(amount);
     if (!isNaN(parsedAmount)) {
-      onSave(parsedAmount, type);
+      const categoryData = categories.find(cat => cat.name === category);
+      if (categoryData) {
+        const budgetData = budgets[category];  // Get the current budget for this category
+        const currentAmount = budgetData ? budgetData.amount : 0;
+        const amountChanged = parsedAmount !== currentAmount;
+
+        if (amountChanged && budgetData) {
+          await updateBudget(categoryData.id, parsedAmount, budgetData.type); // Pass the type as well
+          await loadBudgets(); // Reload budgets after editing
+        }
+
+        onClose(); // Close the modal after saving
+      }
     }
   };
 
@@ -44,20 +60,6 @@ const EditBudgetModal: React.FC<EditBudgetModalProps> = ({
             onChangeText={setAmount}
             keyboardType="numeric"
           />
-          <View style={styles.pillsContainer}>
-            <TouchableOpacity
-              style={[styles.pill, type === 'monthly' && styles.selectedPill]}
-              onPress={() => setType('monthly')}
-            >
-              <Text style={styles.pillText}>Monthly</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.pill, type === 'weekly' && styles.selectedPill]}
-              onPress={() => setType('weekly')}
-            >
-              <Text style={styles.pillText}>Weekly</Text>
-            </TouchableOpacity>
-          </View>
           <View style={styles.buttonsContainer}>
             <Button title="Cancel" onPress={onClose} />
             <Button title="Save" onPress={handleSave} />
@@ -73,7 +75,7 @@ const colors = {
   secondary: "#F9A800",
   text: "#212121",
   background: "#F5F5F5",
-  selectedBackground: "#FFD700", // Highlight color for selected pill
+  selectedBackground: "#FFD700",
 };
 
 const styles = StyleSheet.create({
@@ -99,27 +101,6 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     marginBottom: 15,
-  },
-  pillsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-  },
-  pill: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  selectedPill: {
-    backgroundColor: colors.selectedBackground,
-  },
-  pillText: {
-    fontSize: 16,
-    color: '#fff',
-    fontWeight: 'bold',
   },
   buttonsContainer: {
     flexDirection: 'row',

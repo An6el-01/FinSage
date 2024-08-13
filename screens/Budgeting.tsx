@@ -1,13 +1,13 @@
 import * as React from 'react';
 import { ScrollView, Text, View, StyleSheet, Button, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
-import { Category, Budget, Transaction } from '../types';
+import { Category, Budget } from '../types';
 import { useGoalDataAccess } from '../database/useGoalDataAccess';
 import Card from '../components/ui/Card';
 import ProgressBar from '../components/ui/ProgressBar';
 import AddBudget from '../components/ui/AddBudget';
 import EditBudgetModal from '../components/ui/EditBudgetModal';
 import { Ionicons } from '@expo/vector-icons';
-import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'; // date-fns for date manipulation
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 
 const colors = {
   primary: "#FCB900",
@@ -121,20 +121,18 @@ const styles = StyleSheet.create({
 const Budgeting = () => {
   const { getCategories, insertBudget, getBudgets, deleteBudget, updateBudget, getTransactionsForCategory } = useGoalDataAccess();
   const [categories, setCategories] = React.useState<Category[]>([]);
-  const [budgets, setBudgets] = React.useState<{ [key: string]: { monthly: number | null, weekly: number | null, spent: number, type: 'monthly' | 'weekly' } }>({});
+  const [budgets, setBudgets] = React.useState<Budget[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [showAddBudget, setShowAddBudget] = React.useState<boolean>(false);
   const [editModalVisible, setEditModalVisible] = React.useState<boolean>(false);
   const [editCategory, setEditCategory] = React.useState<string>('');
   const [initialAmount, setInitialAmount] = React.useState<string>('');
-  const [initialType, setInitialType] = React.useState<'monthly' | 'weekly'>('monthly');
 
   React.useEffect(() => {
-    // Load categories first, then load budgets and calculate spent amounts
     const loadInitialData = async () => {
       const fetchedCategories = await getCategories();
       setCategories(fetchedCategories);
-      
+
       const fetchedBudgets = await getBudgets();
       const budgetMap = await Promise.all(
         fetchedBudgets.map(async (budget) => {
@@ -153,18 +151,14 @@ const Budgeting = () => {
             const spent = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
 
             return {
-              [category.name]: {
-                monthly: budget.type === 'monthly' ? budget.amount : null,
-                weekly: budget.type === 'weekly' ? budget.amount : null,
-                spent,
-                type: budget.type,
-              },
+              ...budget,
+              spent,
             };
           }
         })
       );
 
-      setBudgets(Object.assign({}, ...budgetMap));
+      setBudgets(budgetMap.filter(Boolean) as Budget[]);  // Filter out undefined values
       setLoading(false);
     };
 
@@ -199,43 +193,18 @@ const Budgeting = () => {
           const spent = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
 
           return {
-            [category.name]: {
-              monthly: budget.type === 'monthly' ? budget.amount : null,
-              weekly: budget.type === 'weekly' ? budget.amount : null,
-              spent,
-              type: budget.type,
-            },
+            ...budget,
+            spent,
           };
         }
       })
     );
 
-    setBudgets(Object.assign({}, ...budgetMap));
-  };
-
-  const handleEditBudget = async (newAmount: number, newType: 'monthly' | 'weekly') => {
-    const budget = budgets[editCategory];
-    if (!budget) return;
-
-    const categoryData = categories.find(cat => cat.name === editCategory);
-    if (categoryData) {
-        await updateBudget(categoryData.id, newAmount, newType);
-        await loadBudgets(); // Reload budgets after editing
-        setEditModalVisible(false); // Close the modal after saving
-    }
-};
-
-  const handleSaveBudget = async (newAmount: number, newType: 'monthly' | 'weekly') => {
-    const categoryData = categories.find(cat => cat.name === editCategory);
-    if (categoryData) {
-      await updateBudget(categoryData.id, newAmount, newType);
-      await loadBudgets(); // Reload budgets after editing
-      setEditModalVisible(false);
-    }
+    setBudgets(budgetMap.filter(Boolean) as Budget[]);  // Filter out undefined values
   };
 
   const handleDeleteBudget = (category: string) => {
-    const budget = budgets[category];
+    const budget = budgets.find(budget => categories.find(cat => cat.id === budget.category_id)?.name === category);
     if (!budget) return;
 
     Alert.alert(
@@ -249,11 +218,8 @@ const Budgeting = () => {
         {
           text: "Delete",
           onPress: async () => {
-            const categoryData = categories.find(cat => cat.name === category);
-            if (categoryData) {
-              await deleteBudget(categoryData.id, budget.type);
-              await loadBudgets(); // Reload budgets after deletion
-            }
+            await deleteBudget(budget.category_id, budget.type);
+            await loadBudgets(); // Reload budgets after deletion
           },
           style: "destructive"
         }
@@ -281,53 +247,62 @@ const Budgeting = () => {
       ) : (
         <Button title="Add a Budget" onPress={() => setShowAddBudget(true)} />
       )}
-      {Object.keys(budgets).map((category) => (
-        <Card key={category} style={styles.budgetCategoryContainer}>
-          <View style={styles.budgetHeader}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={styles.budgetTitle}>{category} Budget:</Text>
-              <Text style={styles.budgetAmount}>${budgets[category][budgets[category].type]}</Text>
-            </View>
-            <View style={styles.iconContainer}>
-              <TouchableOpacity
-                style={styles.iconWrapper}
-                onPress={() => {
-                  const budget = budgets[category];
-                  if (budget) {
-                    setEditCategory(category);
-                    setInitialAmount(String(budget[budget.type]));
-                    setInitialType(budget.type);
+      {budgets.map((budget) => {
+        const category = categories.find(cat => cat.id === budget.category_id);
+        if (!category) return null;
+
+        return (
+          <Card key={category.name} style={styles.budgetCategoryContainer}>
+            <View style={styles.budgetHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.budgetTitle}>{category.name} Budget:</Text>
+                <Text style={styles.budgetAmount}>${budget.amount}</Text>
+              </View>
+              <View style={styles.iconContainer}>
+                <TouchableOpacity
+                  style={styles.iconWrapper}
+                  onPress={() => {
+                    setEditCategory(category.name);
+                    setInitialAmount(String(budget.amount));
                     setEditModalVisible(true);
-                  }
-                }}
-              >
-                <Ionicons name="pencil" size={20} color={colors.primary} />
-                <Text style={styles.iconText}>Edit</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.iconWrapper} onPress={() => handleDeleteBudget(category)}>
-                <Ionicons name="trash" size={20} color={colors.primary} />
-                <Text style={styles.iconText}>Delete</Text>
-              </TouchableOpacity>
+                  }}
+                >
+                  <Ionicons name="pencil" size={20} color={colors.primary} />
+                  <Text style={styles.iconText}>Edit</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.iconWrapper} onPress={() => handleDeleteBudget(category.name)}>
+                  <Ionicons name="trash" size={20} color={colors.primary} />
+                  <Text style={styles.iconText}>Delete</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-          <ProgressBar progress={budgets[category][budgets[category].type] ? budgets[category].spent / budgets[category][budgets[category].type]! : 0} />
-          <View style={styles.budgetFooter}>
-            <Text style={styles.budgetLeftText}>
-              Left to spend: ${budgets[category][budgets[category].type]! - budgets[category].spent}
-            </Text>
-            <View style={styles.budgetTypePill}>
-              <Text style={styles.budgetTypeText}>{budgets[category].type === 'monthly' ? 'Monthly' : 'Weekly'}</Text>
+            <ProgressBar progress={budget.amount ? budget.spent / budget.amount : 0} />
+            <View style={styles.budgetFooter}>
+              <Text style={styles.budgetLeftText}>
+                Left to spend: ${budget.amount - budget.spent}
+              </Text>
+              <View style={styles.budgetTypePill}>
+                <Text style={styles.budgetTypeText}>{budget.type === 'monthly' ? 'Monthly' : 'Weekly'}</Text>
+              </View>
             </View>
-          </View>
-        </Card>
-      ))}
+          </Card>
+        );
+      })}
       <EditBudgetModal
         visible={editModalVisible}
         onClose={() => setEditModalVisible(false)}
-        onSave={handleSaveBudget}  // Pass the correct handler
+        updateBudget={updateBudget}
+        loadBudgets={loadBudgets}
+        budgets={budgets.reduce((acc, budget) => {
+          const category = categories.find(cat => cat.id === budget.category_id);
+          if (category) {
+            acc[category.name] = budget;
+          }
+          return acc;
+        }, {} as { [key: string]: Budget })}
+        categories={categories}
         category={editCategory}
         initialAmount={initialAmount}
-        initialType={initialType} // Pass the initial type
       />
     </ScrollView>
   );

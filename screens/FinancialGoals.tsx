@@ -91,7 +91,7 @@ const formatCurrency = (value: number) => {
 };
 
 export default function FinancialGoals() {
-  const { getGoals, insertGoal, updateGoal, deleteGoal, depositGoal } = useGoalDataAccess();
+  const { getGoals, insertGoal, updateGoal, deleteGoal } = useGoalDataAccess();
   const [goals, setGoals] = React.useState<Goal[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [showAddGoal, setShowAddGoal] = React.useState<boolean>(false);
@@ -143,7 +143,6 @@ export default function FinancialGoals() {
           ) : showDepositGoal?.id === goal.id ? (
             <DepositGoal
               goal={showDepositGoal}
-              depositGoal={depositGoal}
               loadGoals={loadGoals}
               setShowDepositGoal={setShowDepositGoal}
             />
