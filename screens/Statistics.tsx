@@ -1,12 +1,13 @@
 import * as React from 'react';
 import { ScrollView, Text, View, StyleSheet, TouchableOpacity, Button } from 'react-native';
-import { Category, Transaction } from "../types";
+import { Category, Transaction } from "../Misc/types";
 import { useSQLiteContext } from 'expo-sqlite/next';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { categoryColors, categoryEmojies } from '../constants'; // Import category colors and emojis
+import { categoryColors, categoryEmojies } from '../Misc/constants'; // Import category colors and emojis
 import PieChart from 'react-native-pie-chart';
 import Card from "../components/ui/Card";
-import { RootStackParamList } from '../navigationTypes';
+import { RootStackParamList } from '../Misc/navigationTypes';
+import { fetchTransactionData, preprocessData } from '../Utils/dataProcessing';
 
 const colors = {
   primary: '#FCB900',

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, TextInput, Button, StyleSheet } from 'react-native';
-import { Category, Budget } from '../../types'; // Import the Category and Budget types
+import { Category, Budget } from '../../Misc/types'; // Import the Category and Budget types
 
 interface EditBudgetModalProps {
   visible: boolean;

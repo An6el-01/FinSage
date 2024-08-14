@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ScrollView, Text, View, StyleSheet, Button, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
-import { Category, Budget } from '../types';
+import { Category, Budget } from '../Misc/types';
 import { useGoalDataAccess } from '../database/useGoalDataAccess';
 import Card from '../components/ui/Card';
 import ProgressBar from '../components/ui/ProgressBar';

@@ -4,7 +4,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import Card from "./ui/Card";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useSQLiteContext } from "expo-sqlite/next";
-import { Category, Transaction } from "../types";
+import { Category, Transaction } from "../Misc/types";
 
 export default function AddTransaction({
   insertTransaction,

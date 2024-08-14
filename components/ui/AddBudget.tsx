@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Button } from 'react-native';
 import CustomSlider from './CustomSlider';
-import { Category } from '../../types';
+import { Category } from '../../Misc/types';
 
 const colors = {
   primary: "#FCB900",

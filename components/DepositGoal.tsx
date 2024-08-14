@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { View, TextInput, Button, StyleSheet } from 'react-native';
-import { Goal } from '../types';
+import { Goal } from '../Misc/types';
 import { useSQLiteContext } from 'expo-sqlite';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';

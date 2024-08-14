@@ -1,5 +1,5 @@
 import { useSQLiteContext } from "expo-sqlite/next";
-import { Goal } from "../types";
+import { Goal } from "../Misc/types";
 
 export const useGoalDataAccess = () => {
   const db = useSQLiteContext();

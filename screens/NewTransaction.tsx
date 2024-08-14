@@ -3,7 +3,7 @@ import { ScrollView, View, TextInput, Button, StyleSheet, TouchableOpacity, Text
 import Card from '../components/ui/Card';
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useSQLiteContext } from 'expo-sqlite/next';
-import { Category, Transaction } from '../types';
+import { Category, Transaction } from '../Misc/types';
 import { useGoalDataAccess } from '../database/useGoalDataAccess';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'; // date-fns for date manipulation
 import * as Notifications from 'expo-notifications';

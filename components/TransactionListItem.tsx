@@ -1,8 +1,8 @@
 import { AntDesign } from "@expo/vector-icons";
 import { StyleSheet, Text, View } from "react-native";
-import { Category, Transaction } from "../types";
+import { Category, Transaction } from "../Misc/types";
 import { AutoSizeText, ResizeTextMode } from "react-native-auto-size-text";
-import { categoryColors, categoryEmojies } from "../constants";
+import { categoryColors, categoryEmojies } from "../Misc/constants";
 import Card from "./ui/Card";
 
 interface TransactionListItemProps {

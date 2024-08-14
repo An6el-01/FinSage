@@ -5,6 +5,7 @@ export interface Transaction {
     date: number;
     description: string;
     type: "Expense" | "Income";
+    category_name?: string; //In case its included in Fetch Query 
   }
   
   export interface Category {
