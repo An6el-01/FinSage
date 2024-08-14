@@ -5,14 +5,14 @@ import SegmentedControl from "@react-native-segmented-control/segmented-control"
 import { useSQLiteContext } from 'expo-sqlite/next';
 import { Category, Transaction } from '../Misc/types';
 import { useGoalDataAccess } from '../database/useGoalDataAccess';
-import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns'; // date-fns for date manipulation
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import DateTimePicker from '@react-native-community/datetimepicker'; // Import the date picker
 
 export default function NewTransaction() {
   const db = useSQLiteContext();
-  const { getBudgets, updateBudget, getTransactionsForCategory } = useGoalDataAccess(); // Use data access functions
+  const { getBudgets, updateBudget, getTransactionsForCategory } = useGoalDataAccess();
   const [currentTab, setCurrentTab] = React.useState<number>(0);
   const [categories, setCategories] = React.useState<Category[]>([]);
   const [typeSelected, setTypeSelected] = React.useState<string>("");
@@ -20,6 +20,8 @@ export default function NewTransaction() {
   const [description, setDescription] = React.useState<string>("");
   const [category, setCategory] = React.useState<string>("Expense");
   const [categoryId, setCategoryId] = React.useState<number>(1);
+  const [date, setDate] = React.useState<Date>(new Date()); // Add state for date
+  const [showDatePicker, setShowDatePicker] = React.useState<boolean>(false); // Add state to control the date picker visibility
 
   React.useEffect(() => {
     getExpenseType(currentTab);
@@ -60,7 +62,7 @@ export default function NewTransaction() {
         const endDate = budget.type === 'weekly' ? endOfWeek(new Date()) : endOfMonth(new Date());
         const transactions = await getTransactionsForCategory(categoryId, startDate, endDate);
         const spent = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
-        await updateBudget(categoryId, budget.amount, budget.type); // Assuming this updates the spent amount
+        await updateBudget(categoryId, budget.amount, budget.type);
         await checkBudgetNotifications(categories.find(cat => cat.id === categoryId)!.name, spent, budget.amount);
     }
   };
@@ -70,7 +72,7 @@ export default function NewTransaction() {
     const budgetNotificationsEnabled = JSON.parse(await AsyncStorage.getItem('budgetNotificationsEnabled') || 'true');
 
     if (!budgetNotificationsEnabled) {
-      return; // Exit if notifications are disabled
+      return;
     }
 
     if (percentageSpent >= 90 && percentageSpent < 100) {
@@ -92,28 +94,29 @@ export default function NewTransaction() {
         title,
         body,
       },
-      trigger: null, // Send immediately
+      trigger: null,
     });
   };
 
   async function handleSave() {
     const transaction = {
-      id: 0, // Temporary id as placeholder
+      id: 0,
       amount: Number(amount),
       description,
       category_id: categoryId,
-      date: new Date().getTime(),
+      date: date.getTime(), // Use the selected date
       type: category as "Expense" | "Income",
     };
 
     await insertTransaction(transaction);
-    await refreshBudget(transaction.category_id); // Refresh the budget after inserting a transaction
+    await refreshBudget(transaction.category_id);
     setAmount("");
     setDescription("");
     setCategory("Expense");
     setCategoryId(1);
     setCurrentTab(0);
     setTypeSelected("");
+    setDate(new Date()); // Reset date after saving
     Alert.alert("Success", "Transaction added successfully");
   }
 
@@ -145,6 +148,23 @@ export default function NewTransaction() {
             setCurrentTab(event.nativeEvent.selectedSegmentIndex);
           }}
         />
+        <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+          <Text style={{ marginBottom: 15, fontWeight: "bold" }}>
+            {`Date: ${date.toDateString()}`}
+          </Text>
+        </TouchableOpacity>
+        {showDatePicker && (
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display="default"
+            onChange={(event, selectedDate) => {
+              const currentDate = selectedDate || date;
+              setShowDatePicker(false);
+              setDate(currentDate);
+            }}
+          />
+        )}
         {categories.map((cat) => (
           <TouchableOpacity
             key={cat.name}

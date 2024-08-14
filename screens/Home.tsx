@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ScrollView, StyleSheet, Text, TextStyle, Platform, View, Dimensions, TouchableOpacity, Button } from "react-native";
+import { ScrollView, StyleSheet, Text, TextStyle, Platform, View, Dimensions, TouchableOpacity, Button, Alert } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
 import { Category, Transaction, TransactionsByMonth } from "../Misc/types";
 import { useSQLiteContext } from "expo-sqlite/next";
@@ -8,6 +8,8 @@ import PieChart from 'react-native-pie-chart';
 import { categoryColors, categoryEmojies } from '../Misc/constants';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../Misc/navigationTypes';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 
 const colors = {
   primary: '#FCB900',
@@ -164,6 +166,26 @@ export default function Home() {
     });
   };
 
+  // Add this function to handle exporting the database
+  async function exportDatabase() {
+    const dbPath = `${FileSystem.documentDirectory}SQLite/mySQLiteDB.db`;
+    const exportPath = `${FileSystem.documentDirectory}mySQLiteDB_exported.db`;
+
+    await FileSystem.copyAsync({
+        from: dbPath,
+        to: exportPath,
+    });
+
+    console.log('Database copied to:', exportPath);
+
+    // Open the share dialog to share the exported database
+    if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(exportPath);
+    } else {
+        console.log("Sharing is not available on this device");
+    }
+}
+
   return (
     <ScrollView contentContainerStyle={{ padding: 15, paddingVertical: Platform.OS === 'ios' ? 17 : 17 }}>
       <TransactionSummary
@@ -181,6 +203,10 @@ export default function Home() {
       <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Budgeting')}>
         <Text style={styles.cardText}>Budgeting</Text>
       </TouchableOpacity>
+      {/* Add the button to export the database */}
+      <View style={styles.buttonContainer}>
+        <Button title="Export Database" onPress={exportDatabase} />
+      </View>
     </ScrollView>
   );
 }

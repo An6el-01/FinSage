@@ -104,8 +104,8 @@ export default function YearlySummary() {
   const [currentYear, setCurrentYear] = React.useState(new Date().getFullYear());
 
   const fetchData = async () => {
-    const startOfYear = new Date(currentYear, 0, 1).getTime() / 1000;
-    const endOfYear = new Date(currentYear + 1, 0, 1).getTime() / 1000 - 1;
+    const startOfYear = new Date(currentYear, 0, 1).getTime();
+    const endOfYear = new Date(currentYear + 1, 0, 1).getTime();
 
     const result = await db.getAllAsync<Transaction>(
       `SELECT * FROM Transactions WHERE date >= ? AND date <= ? ORDER BY date DESC;`,

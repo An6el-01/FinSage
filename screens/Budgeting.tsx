@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ScrollView, Text, View, StyleSheet, Button, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
+import { ScrollView, Text, View, StyleSheet, Button, ActivityIndicator, TouchableOpacity, Alert, Modal } from 'react-native';
 import { Category, Budget } from '../Misc/types';
 import { useGoalDataAccess } from '../database/useGoalDataAccess';
 import Card from '../components/ui/Card';
@@ -7,7 +7,9 @@ import ProgressBar from '../components/ui/ProgressBar';
 import AddBudget from '../components/ui/AddBudget';
 import EditBudgetModal from '../components/ui/EditBudgetModal';
 import { Ionicons } from '@expo/vector-icons';
+import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
+import SavingsRecommendations from '../components/ui/SavingsRecommendations';  // Import the new component
 
 const colors = {
   primary: "#FCB900",
@@ -116,6 +118,11 @@ const styles = StyleSheet.create({
     color: colors.text,
     textAlign: 'center',
   },
+  wizardButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+  },
 });
 
 const Budgeting = () => {
@@ -127,6 +134,7 @@ const Budgeting = () => {
   const [editModalVisible, setEditModalVisible] = React.useState<boolean>(false);
   const [editCategory, setEditCategory] = React.useState<string>('');
   const [initialAmount, setInitialAmount] = React.useState<string>('');
+  const [showRecommendations, setShowRecommendations] = React.useState<boolean>(false);  // State for showing recommendations
 
   React.useEffect(() => {
     const loadInitialData = async () => {
@@ -237,74 +245,93 @@ const Budgeting = () => {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContent}>
-      <Text style={styles.text}>Budgeting</Text>
-      {showAddBudget ? (
-        <>
-          <Button title="Back" onPress={() => setShowAddBudget(false)} />
-          <AddBudget categories={categories} onAddBudget={handleAddBudget} />
-        </>
-      ) : (
-        <Button title="Add a Budget" onPress={() => setShowAddBudget(true)} />
-      )}
-      {budgets.map((budget) => {
-        const category = categories.find(cat => cat.id === budget.category_id);
-        if (!category) return null;
+    <View style={styles.container}>
+      <TouchableOpacity
+        style={styles.wizardButton}
+        onPress={() => setShowRecommendations(true)}
+      >
+        <SimpleLineIcons name="magic-wand" size={32} color={colors.primary} />
+      </TouchableOpacity>
 
-        return (
-          <Card key={category.name} style={styles.budgetCategoryContainer}>
-            <View style={styles.budgetHeader}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Text style={styles.budgetTitle}>{category.name} Budget:</Text>
-                <Text style={styles.budgetAmount}>${budget.amount}</Text>
-              </View>
-              <View style={styles.iconContainer}>
-                <TouchableOpacity
-                  style={styles.iconWrapper}
-                  onPress={() => {
-                    setEditCategory(category.name);
-                    setInitialAmount(String(budget.amount));
-                    setEditModalVisible(true);
-                  }}
-                >
-                  <Ionicons name="pencil" size={20} color={colors.primary} />
-                  <Text style={styles.iconText}>Edit</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.iconWrapper} onPress={() => handleDeleteBudget(category.name)}>
-                  <Ionicons name="trash" size={20} color={colors.primary} />
-                  <Text style={styles.iconText}>Delete</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-            <ProgressBar progress={budget.amount ? budget.spent / budget.amount : 0} />
-            <View style={styles.budgetFooter}>
-              <Text style={styles.budgetLeftText}>
-                Left to spend: ${budget.amount - budget.spent}
-              </Text>
-              <View style={styles.budgetTypePill}>
-                <Text style={styles.budgetTypeText}>{budget.type === 'monthly' ? 'Monthly' : 'Weekly'}</Text>
-              </View>
-            </View>
-          </Card>
-        );
-      })}
-      <EditBudgetModal
-        visible={editModalVisible}
-        onClose={() => setEditModalVisible(false)}
-        updateBudget={updateBudget}
-        loadBudgets={loadBudgets}
-        budgets={budgets.reduce((acc, budget) => {
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Text style={styles.text}>Budgeting</Text>
+        {showAddBudget ? (
+          <>
+            <Button title="Back" onPress={() => setShowAddBudget(false)} />
+            <AddBudget categories={categories} onAddBudget={handleAddBudget} />
+          </>
+        ) : (
+          <Button title="Add a Budget" onPress={() => setShowAddBudget(true)} />
+        )}
+        {budgets.map((budget) => {
           const category = categories.find(cat => cat.id === budget.category_id);
-          if (category) {
-            acc[category.name] = budget;
-          }
-          return acc;
-        }, {} as { [key: string]: Budget })}
-        categories={categories}
-        category={editCategory}
-        initialAmount={initialAmount}
-      />
-    </ScrollView>
+          if (!category) return null;
+
+          return (
+            <Card key={category.name} style={styles.budgetCategoryContainer}>
+              <View style={styles.budgetHeader}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Text style={styles.budgetTitle}>{category.name} Budget:</Text>
+                  <Text style={styles.budgetAmount}>${budget.amount}</Text>
+                </View>
+                <View style={styles.iconContainer}>
+                  <TouchableOpacity
+                    style={styles.iconWrapper}
+                    onPress={() => {
+                      setEditCategory(category.name);
+                      setInitialAmount(String(budget.amount));
+                      setEditModalVisible(true);
+                    }}
+                  >
+                    <Ionicons name="pencil" size={20} color={colors.primary} />
+                    <Text style={styles.iconText}>Edit</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.iconWrapper} onPress={() => handleDeleteBudget(category.name)}>
+                    <Ionicons name="trash" size={20} color={colors.primary} />
+                    <Text style={styles.iconText}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <ProgressBar progress={budget.amount ? budget.spent / budget.amount : 0} />
+              <View style={styles.budgetFooter}>
+                <Text style={styles.budgetLeftText}>
+                  Left to spend: ${budget.amount - budget.spent}
+                </Text>
+                <View style={styles.budgetTypePill}>
+                  <Text style={styles.budgetTypeText}>{budget.type === 'monthly' ? 'Monthly' : 'Weekly'}</Text>
+                </View>
+              </View>
+            </Card>
+          );
+        })}
+        <EditBudgetModal
+          visible={editModalVisible}
+          onClose={() => setEditModalVisible(false)}
+          updateBudget={updateBudget}
+          loadBudgets={loadBudgets}
+          budgets={budgets.reduce((acc, budget) => {
+            const category = categories.find(cat => cat.id === budget.category_id);
+            if (category) {
+              acc[category.name] = budget;
+            }
+            return acc;
+          }, {} as { [key: string]: Budget })}
+          categories={categories}
+          category={editCategory}
+          initialAmount={initialAmount}
+        />
+      </ScrollView>
+
+      <Modal
+        visible={showRecommendations}
+        animationType="slide"
+        onRequestClose={() => setShowRecommendations(false)}
+      >
+        <SavingsRecommendations
+          onClose={() => setShowRecommendations(false)}
+        />
+      </Modal>
+    </View>
   );
 };
 
