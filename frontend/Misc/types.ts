@@ -33,5 +33,6 @@ export interface Transaction {
     spent: number,
     type: "monthly" | "weekly";
   }
+
  
   

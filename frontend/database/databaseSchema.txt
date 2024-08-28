@@ -1,0 +1,128 @@
+Complete Database Schema Breakdown
+
+1. Users Table
+    Purpose: To store user information and link their data across different tables.
+    Fields:
+        - id (Primary Key) - Integer
+        - username - Text, unique username for the user
+        - email - Text, unique email address
+        - password_hash - Text, hashed password for security
+        - created_at - Integer, timestamp for account creation
+        - updated_at - Integer, timestamp for last account update
+2. Categories Table
+    Purpose: To manage different categories of transactions.
+    Fields:
+        - id (Primary Key) - Integer
+        - user_id (Foreign Key) - Integer, links to the Users table
+        - name - Text, name of the category
+        - type - Text, e.g., "Expense", "Income"
+3. Transactions Table
+    Purpose: To record all transactions made by users.
+    Fields:
+        - id (Primary Key) - Integer
+        - user_id (Foreign Key) - Integer, links to the Users table
+        - category_id (Foreign Key) - Integer, links to the Categories table
+        - amount - Real, the transaction amount
+        - date - Integer, timestamp of the transaction
+        - description - Text, a description of the transaction
+        - type - Text, e.g., "Debit", "Credit"
+4. Goals Table
+    Purpose: To store financial goals set by users.
+    Fields:
+        - id (Primary Key) - Integer
+        - user_id (Foreign Key) - Integer, links to the Users table
+        - name - Text, goal name
+        - amount - Real, target amount for the goal
+        - progress - Real, current progress towards the goal
+5. Budgets Table
+    Purpose: To track budgets set by users for different categories.
+    Fields:
+        - id (Primary Key) - Integer
+        - user_id (Foreign Key) - Integer, links to the Users table
+        - category_id (Foreign Key) - Integer, links to the Categories table
+        - amount - Real, budgeted amount
+        - spent - Real, amount spent within the budget
+        - type - Text, e.g., "Monthly", "Annual"
+        - created_at - Integer, timestamp for budget creation
+        - updated_at - Integer, timestamp for last update
+6. Contributions Table
+    Purpose: To manage contributions towards financial goals.
+    Fields:
+        - id (Primary Key) - Integer
+        - user_id (Foreign Key) - Integer, links to the Users table
+        - goal_id (Foreign Key) - Integer, links to the Goals table
+        - amount - Real, amount contributed
+        - date - Integer, timestamp of the contribution
+7. Savings Table
+    Purpose: To track savings accounts for users.
+    Fields:
+        - id (Primary Key) - Integer
+        - user_id (Foreign Key) - Integer, links to the Users table
+        - goal_id (Foreign Key) - Integer, optional link to a specific goal
+        - savings_goal - Real, target savings amount
+        - current_savings - Real, current savings balance
+        - created_at - Integer, timestamp of savings account creation
+        - updated_at - Integer, timestamp of last update
+8. AI Recommendations Table
+    Purpose: To store AI-driven recommendations for users.
+    Fields:
+        - id (Primary Key) - Integer
+        - user_id (Foreign Key) - Integer, links to the Users table
+        - type - Text, type of recommendation, e.g., "Savings Adjustment", "Investment"
+        - recommendation - Text, detailed recommendation content
+        - created_at - Integer, timestamp when the recommendation was generated
+9. Anomalies Table
+    Purpose: To log anomalies detected in user transactions.
+    Fields:
+        -id (Primary Key) - Integer
+        - user_id (Foreign Key) - Integer, links to the Users table
+        - transaction_id (Foreign Key) - Integer, links to the Transactions table
+        - description - Text, description of the anomaly
+        - severity - Text, e.g., "Low", "Medium", "High"
+        - resolved - Boolean, flag indicating if the anomaly has been resolved
+10. Subscriptions Table
+    Purpose: To track recurring subscriptions for users.
+    Fields:
+        - id (Primary Key) - Integer
+        - user_id (Foreign Key) - Integer, links to the Users table
+        - name - Text, name of the subscription service
+        - amount - Real, cost of the subscription
+        - frequency - Text, e.g., "Monthly", "Yearly"
+        - next_billing_date - Integer, timestamp for next billing cycle
+11. User Reports Table
+    Purpose: To manage financial reports generated for users.
+    Fields:
+        - id (Primary Key) - Integer
+        - user_id (Foreign Key) - Integer, links to the Users table
+        - report_type - Text, type of report, e.g., "Monthly Summary"
+        - report_data - JSON, structured data for the report
+        - generated_at - Integer, timestamp of report generation
+12. Currencies Table
+    Purpose: To handle multi-currency support for users.
+    Fields:
+        - id (Primary Key) - Integer
+        - user_id (Foreign Key) - Integer, links to the Users table
+        - base_currency - Text, user's selected currency
+        - conversion_rates - JSON, current conversion rates for different currencies
+13. Financial Health Table
+    Purpose: To store data related to the financial health score of users.
+    Fields:
+        - id (Primary Key) - Integer
+        - user_id (Foreign Key) - Integer, links to the Users table
+        - income - Real, total income considered for the health score
+        - expenses - Real, total expenses
+        - savings - Real, total savings amount
+        - investments - Real, total investment value
+        - debts - Real, total debts amount
+        - crypto_portfolio_value - Real, value of the crypto portfolio
+        - health_score - Real, calculated financial health score
+        - score_date - Integer, timestamp of score calculation
+14. Crypto Portfolios Table
+    Purpose: To manage cryptocurrency portfolio data for users.
+    Fields:
+        - id (Primary Key) - Integer
+        - user_id (Foreign Key) - Integer, links to the Users table
+        - crypto_name - Text, name of the cryptocurrency
+        - amount_held - Real, quantity of crypto held
+        - current_value - Real, current market value of holdings
+        - last_updated - Integer, timestamp for when the portfolio was last updated
