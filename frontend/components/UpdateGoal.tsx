@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { View, TextInput, Button, StyleSheet } from 'react-native';
-import { Goal } from '../Misc/types';
+import { Goal } from '../types/types';
 
 const colors = {
   primary: '#FCB900',

@@ -1,13 +1,13 @@
 import * as React from 'react';
 import { ScrollView, Text, View, StyleSheet, Button, ActivityIndicator, TouchableOpacity, TextInput } from 'react-native';
-import { Goal, Category } from '../Misc/types';
+import { Goal, Category } from '../types/types';
 import { useGoalDataAccess } from "../database/useGoalDataAccess";
 import Card from '../components/ui/Card';
 import AddGoal from '../components/AddGoal';
 import UpdateGoal from '../components/UpdateGoal';
 import DepositGoal from '../components/DepositGoal';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from '../Misc/navigationTypes';
+import { RootStackParamList } from '../types/navigationTypes';
 import { Ionicons } from '@expo/vector-icons';
 
 const colors = {

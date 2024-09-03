@@ -1,13 +1,13 @@
 import * as React from "react";
 import { ScrollView, StyleSheet, Text, TextStyle, Platform, View, Dimensions, TouchableOpacity, Button, Alert } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
-import { Category, Transaction, TransactionsByMonth } from "../Misc/types";
+import { Category, Transaction, TransactionsByMonth } from "../types/types";
 import { useSQLiteContext } from "expo-sqlite/next";
 import Card from "../components/ui/Card";
 import PieChart from 'react-native-pie-chart';
-import { categoryColors, categoryEmojies } from '../Misc/constants';
+import { categoryColors, categoryEmojies } from '../types/constants';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from '../Misc/navigationTypes';
+import { RootStackParamList } from '../types/navigationTypes';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 

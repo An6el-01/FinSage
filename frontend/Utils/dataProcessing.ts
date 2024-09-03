@@ -1,6 +1,6 @@
 
 import { useSQLiteContext } from "expo-sqlite/next";
-import { Transaction } from "../Misc/types";
+import { Transaction } from "../types/types";
 
 // Fetch transaction data from SQLite database
 export const fetchTransactionData = async () => {

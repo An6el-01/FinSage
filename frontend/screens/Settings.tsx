@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Text, Switch, StyleSheet } from 'react-native';
+import { View, Text, Switch, StyleSheet, Button, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const colors = {
@@ -40,9 +40,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text,
   },
+  logoutButton: {
+    marginTop: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+  },
+  logoutButtonText: {
+    color: '#fff',
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
 
-const Settings = () => {
+const Settings = ({ navigation }: { navigation: any }) => {
   const [isBudgetNotificationsEnabled, setIsBudgetNotificationsEnabled] = React.useState<boolean>(false);
   const [isGoalNotificationsEnabled, setIsGoalNotificationsEnabled] = React.useState<boolean>(false);
 
@@ -74,6 +87,26 @@ const Settings = () => {
     await AsyncStorage.setItem('goalNotificationsEnabled', JSON.stringify(newValue));
   };
 
+  const handleLogout = async () => {
+    // Confirm logout action
+    Alert.alert('Logout', 'Are you sure you want to log out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          // Remove the login status from AsyncStorage
+          await AsyncStorage.setItem('isLoggedIn', 'false');
+          // Navigate to the Login screen
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Login' }],
+          });
+        },
+      },
+    ]);
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Settings</Text>
@@ -89,6 +122,13 @@ const Settings = () => {
         <Switch
           value={isGoalNotificationsEnabled}
           onValueChange={toggleGoalNotifications}
+        />
+      </View>
+      <View style={{ marginTop: 20 }}>
+        <Button
+          title="Logout"
+          color={colors.primary}
+          onPress={handleLogout}
         />
       </View>
     </View>

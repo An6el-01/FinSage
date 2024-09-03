@@ -4,8 +4,8 @@ import { useSQLiteContext } from 'expo-sqlite/next';
 import { useFocusEffect } from '@react-navigation/native';
 import { BarChart, LineChart } from 'react-native-chart-kit';
 import PieChart from 'react-native-pie-chart';
-import { Transaction, Category } from '../Misc/types';
-import { categoryColors, categoryEmojies } from '../Misc/constants';
+import { Transaction, Category } from '../types/types';
+import { categoryColors, categoryEmojies } from '../types/constants';
 
 const colors = {
   primary: '#FCB900',

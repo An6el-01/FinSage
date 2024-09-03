@@ -34,5 +34,6 @@ export interface Transaction {
     type: "monthly" | "weekly";
   }
 
- 
-  
+  export interface BackupData{
+    [key: string]: Array<{ [key: string]: any }>;
+  }

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Category, Transaction } from '../Misc/types';
+import { Category, Transaction } from '../types/types';
 import { TouchableOpacity, View, Text, Alert } from 'react-native';
 import TransactionListItem from './TransactionListItem';
 
