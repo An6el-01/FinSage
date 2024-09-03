@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { View, Text, Switch, StyleSheet, Button, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { RootStackParamList } from '../types/navigationTypes';
+import { AuthContext } from '../App'; // Import AuthContext
 
 const colors = {
   primary: '#FCB900',
@@ -58,6 +61,7 @@ const styles = StyleSheet.create({
 const Settings = ({ navigation }: { navigation: any }) => {
   const [isBudgetNotificationsEnabled, setIsBudgetNotificationsEnabled] = React.useState<boolean>(false);
   const [isGoalNotificationsEnabled, setIsGoalNotificationsEnabled] = React.useState<boolean>(false);
+  const authContext = React.useContext(AuthContext); // Use signOut from AuthContext
 
   React.useEffect(() => {
     const loadSettings = async () => {
@@ -87,21 +91,14 @@ const Settings = ({ navigation }: { navigation: any }) => {
     await AsyncStorage.setItem('goalNotificationsEnabled', JSON.stringify(newValue));
   };
 
-  const handleLogout = async () => {
-    // Confirm logout action
+  const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to log out?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Logout',
         style: 'destructive',
-        onPress: async () => {
-          // Remove the login status from AsyncStorage
-          await AsyncStorage.setItem('isLoggedIn', 'false');
-          // Navigate to the Login screen
-          navigation.reset({
-            index: 0,
-            routes: [{ name: 'Login' }],
-          });
+        onPress: () => {
+          authContext?.signOut(); // Use the signOut function from AuthContext
         },
       },
     ]);
