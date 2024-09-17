@@ -8,4 +8,6 @@ export type RootStackParamList = {
     YearlySummary: undefined;
     FinancialGoals: undefined;
     Budgeting: undefined;
+    SignUpPage: undefined;
+    UserStack: undefined;
 };

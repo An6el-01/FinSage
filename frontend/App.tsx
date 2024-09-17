@@ -1,6 +1,6 @@
 import * as React from "react";
 import { SQLiteProvider } from "expo-sqlite/next";
-import { ActivityIndicator, Text, View, StyleSheet, Platform } from "react-native";
+import { ActivityIndicator, Text, View, StyleSheet, Platform, TouchableOpacity } from "react-native";
 import * as FileSystem from "expo-file-system";
 import { Asset } from "expo-asset";
 import { NavigationContainer } from "@react-navigation/native";
@@ -22,6 +22,7 @@ import YearlySummary from "./screens/YearlySummary";
 import FinancialGoals from "./screens/FinancialGoals";
 import Budgeting from "./screens/Budgeting";
 import LogInPage from "./screens/LogInPage";
+import SignUpPage from "./screens/SignUpPage";
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -123,13 +124,111 @@ const loadDatabase = async () => {
   }
 };
 
+const HomeStack = createNativeStackNavigator<RootStackParamList>();
+const StatsStack = createNativeStackNavigator<RootStackParamList>();
+const UserStack = createNativeStackNavigator<RootStackParamList>();
+ 
+const UserStackNavigator = () => {
+  return(
+    <UserStack.Navigator
+      screenOptions={{
+        headerShown: true, // Set to true to show the header
+        headerStyle: { backgroundColor: colors.primary }, // Optional: Customize header style
+        headerTintColor: '#fff', // Optional: Customize header text color
+        headerTitleStyle: { fontWeight: 'bold' }, // Optional: Customize title style
+      }}
+    >
+      <UserStack.Screen name="LoginPage" component={LogInPage} />
+      <UserStack.Screen
+      name="SignUpPage" 
+      component={SignUpPage} 
+      options={({ navigation }) => ({
+        title: 'Go Back',
+        headerLeft: () => (
+          <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 10 }}>
+            <Ionicons name="arrow-back" size={24} color="#fff" />
+          </TouchableOpacity>
+        ),
+      })} 
+      />
+    </UserStack.Navigator>
+  )
+}
+
+const HomeStackNavigator = () => {
+  return (
+    <HomeStack.Navigator
+      screenOptions={{
+        headerShown: true, // Set to true to show the header
+        headerStyle: { backgroundColor: colors.primary }, // Optional: Customize header style
+        headerTintColor: '#fff', // Optional: Customize header text color
+        headerTitleStyle: { fontWeight: 'bold' }, // Optional: Customize title style
+      }}
+    >
+      <HomeStack.Screen name="HomeMain" component={Home} options={{ headerShown: false }} />
+      <HomeStack.Screen 
+        name="FinancialGoals" 
+        component={FinancialGoals} 
+        options={({ navigation }) => ({
+          title: 'Go Back',
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 10 }}>
+              <Ionicons name="arrow-back" size={24} color="#fff" />
+            </TouchableOpacity>
+          ),
+        })} 
+      />
+      <HomeStack.Screen 
+        name="Budgeting" 
+        component={Budgeting} 
+        options={({ navigation }) => ({
+          title: 'Go Back',
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 10 }}>
+              <Ionicons name="arrow-back" size={24} color="#fff" />
+            </TouchableOpacity>
+          ),
+        })} 
+      />
+    </HomeStack.Navigator>
+  );
+};
+
+const StatisticsNavigator = () => {
+  return (
+  <StatsStack.Navigator
+  screenOptions={{
+    headerShown: true, // Set to true to show the header
+    headerStyle: { backgroundColor: colors.primary }, // Optional: Customize header style
+    headerTintColor: '#fff', // Optional: Customize header text color
+    headerTitleStyle: { fontWeight: 'bold' }, // Optional: Customize title style
+  }}
+  >
+    <StatsStack.Screen name="StatisticsMain" component={Statistics} options={{ headerShown: false }}/>
+    <StatsStack.Screen
+     name="YearlySummary" 
+     component={YearlySummary} 
+     options={({ navigation }) => ({
+       title: 'Go Back',
+       headerLeft: () => (
+         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginLeft: 10 }}>
+           <Ionicons name="arrow-back" size={24} color="#fff" />
+         </TouchableOpacity>
+       ),
+     })} 
+    />
+  </StatsStack.Navigator>
+  )
+}
+
+
 const MainTabs = () => (
   <Tab.Navigator 
     screenOptions={({ route }) => ({
       tabBarIcon: ({ focused, color, size }) => {
         let iconName;
-        if (route.name === "Home") iconName = focused ? "home" : "home-outline";
-        else if (route.name === "Statistics") iconName = focused ? "bar-chart" : "bar-chart-outline";
+        if (route.name === "HomeStack") iconName = focused ? "home" : "home-outline";
+        else if (route.name === "StatsStack") iconName = focused ? "bar-chart" : "bar-chart-outline";
         else if (route.name === "Settings") iconName = focused ? "settings" : "settings-outline";
         else if (route.name === "NewTransaction") iconName = focused ? "add-circle" : "add-circle-outline";
         return <Ionicons name={iconName as "key"} size={size} color={color} />;
@@ -138,8 +237,8 @@ const MainTabs = () => (
       tabBarInactiveTintColor: colors.text,
     })}
   >
-    <Tab.Screen name="Home" component={Home} />
-    <Tab.Screen name="Statistics" component={Statistics} />
+    <Tab.Screen name="HomeStack" component={HomeStackNavigator} options={{ title: 'Home'}} />
+    <Tab.Screen name="StatsStack" component={StatisticsNavigator} options= {{ title: 'Statistics'}} />
     <Tab.Screen name="NewTransaction" component={NewTransaction} options={{ title: 'New Entry' }} />
     <Tab.Screen name="Settings" component={Settings} />
   </Tab.Navigator>
@@ -239,9 +338,9 @@ const App = () => {
         <SQLiteProvider databaseName="mySQLiteDB.db">
           <Stack.Navigator screenOptions={{ headerShown: false }}>
             {state.userToken == null ? (
-              <Stack.Screen name="LoginPage" component={LogInPage} />
+              <Stack.Screen name="UserStack" component={UserStackNavigator} />
             ) : (
-              <Stack.Screen name="MainTabs" component={MainTabs} />
+                <Stack.Screen name="MainTabs" component={MainTabs} />              
             )}
           </Stack.Navigator>
         </SQLiteProvider>

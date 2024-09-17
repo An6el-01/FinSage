@@ -34,6 +34,17 @@ export interface Transaction {
     type: "monthly" | "weekly";
   }
 
+  export interface Users {
+    id: number;
+    username: string;
+    email: string;
+    password_hash: string;
+    created_at: number;
+    updated_at: number;
+    subscription_plan: string;
+    is_premium: boolean;
+  }
+
   export interface BackupData{
     [key: string]: Array<{ [key: string]: any }>;
   }
