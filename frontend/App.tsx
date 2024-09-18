@@ -165,7 +165,7 @@ const HomeStackNavigator = () => {
         headerTitleStyle: { fontWeight: 'bold' }, // Optional: Customize title style
       }}
     >
-      <HomeStack.Screen name="HomeMain" component={Home} options={{ headerShown: false }} />
+      <HomeStack.Screen name="HomeMain" component={Home} options={{ title: 'Welcome Back!' }} />
       <HomeStack.Screen 
         name="FinancialGoals" 
         component={FinancialGoals} 

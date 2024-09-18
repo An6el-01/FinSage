@@ -120,6 +120,8 @@ export default function Home() {
     }, [db, currentMonth])
   );
 
+  
+
   async function getData() {
     const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
     const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
@@ -185,6 +187,7 @@ export default function Home() {
         console.log("Sharing is not available on this device");
     }
 }
+
 
   return (
     <ScrollView contentContainerStyle={{ padding: 15, paddingVertical: Platform.OS === 'ios' ? 17 : 17 }}>
