@@ -9,6 +9,7 @@ Complete Database Schema Breakdown
         - password_hash - Text, hashed password for security
         - created_at - Integer, timestamp for account creation
         - updated_at - Integer, timestamp for last account update
+        - is_premium - Boolean, account subscription type (Default 0)
 2. Categories Table
     Purpose: To manage different categories of transactions.
     Fields:
@@ -25,8 +26,8 @@ Complete Database Schema Breakdown
         - amount - Real, the transaction amount
         - date - Integer, timestamp of the transaction
         - description - Text, a description of the transaction
-        - type - Text, e.g., "Debit", "Credit"
 4. Goals Table
+
     Purpose: To store financial goals set by users.
     Fields:
         - id (Primary Key) - Integer

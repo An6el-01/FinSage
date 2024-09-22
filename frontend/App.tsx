@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
   },
 });
 
-async function registerForPushNotificationsAsync() {
+const registerForPushNotificationsAsync = async () => {
   let token;
 
   if (Platform.OS === 'android') {
@@ -85,14 +85,14 @@ async function registerForPushNotificationsAsync() {
       ).data;
       console.log(token);
     } catch (e) {
-      token = `${e}`;
+      console.error(e);
     }
   } else {
     alert('Must use physical device for Push Notifications');
   }
 
   return token;
-}
+};
 
 const deleteExistingDatabase = async () => {
   const dbName = "mySQLiteDB.db";
@@ -118,12 +118,11 @@ const loadDatabase = async () => {
       { intermediates: true }
     );
     await FileSystem.downloadAsync(dbUri, dbFilePath);
-    console.log('Database copied from assets.');
-  } else {
-    console.log('Database already exists, no need to copy.');
-  }
-};
-
+    console.log('Datbase copied from assets.');}
+    else{
+      console.log('Database already exists, no need to copy.');
+    }
+  };
 const HomeStack = createNativeStackNavigator<RootStackParamList>();
 const StatsStack = createNativeStackNavigator<RootStackParamList>();
 const UserStack = createNativeStackNavigator<RootStackParamList>();
@@ -270,7 +269,6 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
   }),
 });
-
 const App = () => {
   const [state, dispatch] = React.useReducer((prevState: State, action: Action): State => {
     switch (action.type) {
@@ -295,12 +293,23 @@ const App = () => {
       default:
         return prevState;
     }
-  }, initialState);
+  }, {
+    isLoading: true,
+    isSignout: false,
+    userToken: null,
+  });
 
+  // Speed up initialization by splitting into smaller tasks
   React.useEffect(() => {
     const bootstrapAsync = async () => {
-      let userToken;
+      // Parallelize loading and token restoration for faster startup
+      const loadAsyncTasks = async () => {
+        await Promise.all([loadDatabase(), registerForPushNotificationsAsync()]);
+      };
 
+      loadAsyncTasks().catch(console.error);
+
+      let userToken;
       try {
         userToken = await AsyncStorage.getItem('isLoggedIn');
       } catch (e) {
@@ -340,7 +349,7 @@ const App = () => {
             {state.userToken == null ? (
               <Stack.Screen name="UserStack" component={UserStackNavigator} />
             ) : (
-                <Stack.Screen name="MainTabs" component={MainTabs} />              
+              <Stack.Screen name="MainTabs" component={MainTabs} />
             )}
           </Stack.Navigator>
         </SQLiteProvider>
@@ -350,4 +359,4 @@ const App = () => {
 };
 
 export default App;
-export { AuthContext }; // Export AuthContext
+export { AuthContext };

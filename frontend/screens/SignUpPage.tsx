@@ -10,6 +10,7 @@ const SignUpPage = () => {
   const [username, setUsername] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
+  const [isPremium, setIsPremium] = React.useState(false); // New state to track if the user has premium
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const db = useSQLiteContext();
 
@@ -23,32 +24,31 @@ const SignUpPage = () => {
       // Hash the password before saving
       const salt = bcrypt.genSaltSync(10);
       const passwordHash = bcrypt.hashSync(password, salt);
-      const createdAt = new Date().toISOString();
+      const createdAt = Date.now(); // Using timestamp for better compatibility
       const updatedAt = createdAt;
+      
+      // Check if the email or username already exists in the database
+      const existingUsers = await db.getAllAsync<Users>(
+        'SELECT * FROM Users WHERE username = ? OR email = ?',
+        [username, email]
+      );
 
-      // Corrected use of execAsync
-      const createUser = async (users: Users) => {
-        await db.withTransactionAsync(async () => {
-          await db.runAsync(
-            `INSERT INTO Users (username, email, password_hash, created_at, updated_at, subscription_plan, is_premium) VALUES (?,?,?,?,?,?,?)`,
-            [
-                users.username,
-                users.email,
-                users.password_hash,
-                users.created_at,
-                users.updated_at,
-                users.subscription_plan,
-                users.is_premium
-            ]
-          )  
-        })
+      if (existingUsers.length > 0) {
+        Alert.alert('Error', 'Username or email is already taken.');
+        return;
       }
+
+      // Proceed to create a new user
+      await db.runAsync(
+        `INSERT INTO Users (username, email, password_hash, created_at, updated_at, is_premium) VALUES (?, ?, ?, ?, ?, ?)`,
+        [username, email, passwordHash, createdAt, updatedAt, isPremium ? 1 : 0] // Save 1 for premium, 0 otherwise
+      );
 
       Alert.alert('Success', 'Account created successfully.');
       navigation.navigate('LoginPage'); // Navigate back to login page
     } catch (error) {
       Alert.alert('Error', 'Failed to create account. Please try again.');
-      console.error(error);
+      console.error('Sign-up Error:', error);
     }
   };
 
@@ -75,6 +75,16 @@ const SignUpPage = () => {
         onChangeText={setPassword}
         secureTextEntry
       />
+      {/* Additional Option for Premium */}
+      <View style={styles.checkboxContainer}>
+        <Text style={styles.checkboxLabel}>Premium Account</Text>
+        <TouchableOpacity
+          style={styles.checkbox}
+          onPress={() => setIsPremium(!isPremium)}
+        >
+          <Text style={{ color: '#fff' }}>{isPremium ? 'Yes' : 'No'}</Text>
+        </TouchableOpacity>
+      </View>
       <Button title="Sign Up" onPress={handleSignUp} />
       <TouchableOpacity onPress={() => navigation.navigate('LoginPage')}>
         <Text style={{ color: 'blue', marginTop: 20, textAlign: 'center' }}>
@@ -105,6 +115,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 8,
     backgroundColor: '#fff',
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  checkboxLabel: {
+    fontSize: 16,
+    marginRight: 10,
+  },
+  checkbox: {
+    width: 30,
+    height: 30,
+    borderRadius: 5,
+    backgroundColor: '#FCB900',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 
