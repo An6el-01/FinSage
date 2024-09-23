@@ -45,6 +45,15 @@ export interface Transaction {
     is_premium: boolean;
   }
 
+  export interface FinancialOverviewProps {
+    totalIncome: number;
+    totalExpenses: number;
+    savings: number;
+  }
+
+  export interface RecentTransactionProps {
+    transactions: Transaction[];
+  }
   export interface BackupData{
     [key: string]: Array<{ [key: string]: any }>;
   }

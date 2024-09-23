@@ -6,7 +6,7 @@ export type RootStackParamList = {
     GoalsMain: undefined;
     StatisticsMain: undefined;
     YearlySummary: undefined;
-    FinancialGoals: undefined;
+    SavingsGoals: undefined;
     Budgeting: undefined;
     SignUpPage: undefined;
     UserStack: undefined;
