@@ -367,12 +367,15 @@ import { ActivityIndicator, Text, View, StyleSheet, TouchableOpacity } from "rea
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { RootStackParamList } from './types/navigationTypes';
 
 // Screens
 import BottomNavBar from "./navigation/BottomNavBar"; // Import the BottomNavBar
 import LogInPage from "./screens/LogInPage";
 import SignUpPage from "./screens/SignUpPage";
+import Settings from "./screens/Settings";
+import SavingGoals from "./screens/SavingsGoals";
 
 type AuthContextType = {
   signIn: (token: string) => void;
@@ -382,6 +385,7 @@ type AuthContextType = {
 export const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator();
 
 const colors = {
   primary: '#FCB900',
@@ -398,6 +402,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+
 
 const App = () => {
   const [state, dispatch] = React.useReducer((prevState: any, action: any) => {
@@ -480,6 +485,7 @@ const App = () => {
               </>
             ) : (
               <Stack.Screen name="HomeMain" component={BottomNavBar} />
+              
             )}
           </Stack.Navigator>
         </SQLiteProvider>

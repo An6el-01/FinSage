@@ -4,10 +4,11 @@ export type RootStackParamList = {
     LoginPage: undefined; // Add this line
     HomeMain: undefined;
     GoalsMain: undefined;
-    StatisticsMain: undefined;
+    Statistics: undefined;
     YearlySummary: undefined;
     SavingsGoals: undefined;
     Budgeting: undefined;
     SignUpPage: undefined;
     UserStack: undefined;
+    Settings: undefined;
 };

@@ -2,9 +2,12 @@
 import React from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
+import { RootStackParamList } from '../../types/navigationTypes';
 
 const SavingsGoalsProgress = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
 
   // Placeholder data for savings goals. Replace with real data.
   const goals = [

@@ -1,12 +1,13 @@
 import * as React from "react";
 import { ScrollView, StyleSheet, Text, Platform, View, TouchableOpacity, Button } from "react-native";
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Category, Transaction, TransactionsByMonth } from "../types/types";
 import { useSQLiteContext } from "expo-sqlite/next";
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../types/navigationTypes';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import { Ionicons } from '@expo/vector-icons'; // Import Ionicons
 
 // Import the new components
 import FinancialOverview from "../components/HomeScreen/FinancialOverview";
@@ -53,6 +54,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 15,
   },
+  settingsIcon: {
+    alignItems: 'center',
+    marginRight: 13,
+  },
+  settingsIconName: {
+    marginTop: 3,
+    fontSize: 12,
+    color: '#212121',
+  }
 });
 
 export default function Home() {
@@ -74,6 +84,17 @@ export default function Home() {
       });
     }, [db, currentMonth])
   );
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity style={styles.settingsIcon} onPress={() => navigation.navigate('Settings')}>
+          <Ionicons name="settings-outline" size={24} color="black" />
+          <Text style={styles.settingsIconName}>Settings</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
 
   async function getData() {
     const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
@@ -156,9 +177,7 @@ export default function Home() {
 
       {/* Buttons for viewing all goals and reports */}
       <View style={styles.buttonContainer}>
-        <Button title="View All Goals" onPress={() => navigation.navigate('SavingsGoals')} />
-        <Button title="View Reports"/> 
-        {/*onPress={() => navigation.navigate('Reports')} />*/}
+        <Button title="View Reports"  onPress={() => navigation.navigate('Statistics')}/> 
       </View>
 
       {/* Add a button to export the database */}

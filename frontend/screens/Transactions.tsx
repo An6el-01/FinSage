@@ -9,9 +9,33 @@ import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker'; // Import the date picker
+import { NavigationProp } from '@react-navigation/native';
+import { RootStackParamList } from '../types/navigationTypes';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+
+const styles = StyleSheet.create({
+  container: {
+    flexGrow: 1,
+    padding: 15,
+    backgroundColor: '#F5F5F5',
+  },
+  settingsIcon: {
+    alignItems: 'center',
+    marginRight:  13,
+  },
+  settingsIconName: {
+    marginTop: 3,
+    fontSize: 12,
+    color: '#212121',
+  }
+});
+
+
 
 export default function NewTransaction() {
   const db = useSQLiteContext();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { getBudgets, updateBudget, getTransactionsForCategory } = useGoalDataAccess();
   const [currentTab, setCurrentTab] = React.useState<number>(0);
   const [categories, setCategories] = React.useState<Category[]>([]);
@@ -26,6 +50,17 @@ export default function NewTransaction() {
   React.useEffect(() => {
     getExpenseType(currentTab);
   }, [currentTab]);
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity style={styles.settingsIcon} onPress={() => navigation.navigate('Settings')}>
+          <Ionicons name="settings-outline" size={24} color="black" />
+          <Text style={styles.settingsIconName}>Settings</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
 
   async function getExpenseType(currentTab: number) {
     setCategory(currentTab === 0 ? "Expense" : "Income");
@@ -202,10 +237,3 @@ export default function NewTransaction() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    padding: 15,
-    backgroundColor: '#F5F5F5',
-  },
-});
