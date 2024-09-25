@@ -363,19 +363,21 @@
 
 import * as React from "react";
 import { SQLiteProvider } from "expo-sqlite/next";
-import { ActivityIndicator, Text, View, StyleSheet, TouchableOpacity } from "react-native";
+import { ActivityIndicator, Text, View, StyleSheet } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { RootStackParamList } from './types/navigationTypes';
+// import { checkAndCopyDatabase } from "./Utils/dbUtils";
 
 // Screens
 import BottomNavBar from "./navigation/BottomNavBar"; // Import the BottomNavBar
 import LogInPage from "./screens/LogInPage";
 import SignUpPage from "./screens/SignUpPage";
-import Settings from "./screens/Settings";
-import SavingGoals from "./screens/SavingsGoals";
+
+
+const DB_VERSION = "1.0";
 
 type AuthContextType = {
   signIn: (token: string) => void;
@@ -402,6 +404,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+
 
 
 const App = () => {
@@ -443,6 +446,7 @@ const App = () => {
       } catch (e) {
         console.error(e);
       }
+      // await checkAndCopyDatabase();
 
       dispatch({ type: 'RESTORE_TOKEN', token: userToken });
     };

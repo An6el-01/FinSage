@@ -8,6 +8,7 @@ import { RootStackParamList } from '../types/navigationTypes';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Ionicons } from '@expo/vector-icons'; // Import Ionicons
+// import { checkAndCopyDatabase } from '../Utils/dbUtils';
 
 // Import the new components
 import FinancialOverview from "../components/HomeScreen/FinancialOverview";
@@ -76,6 +77,13 @@ export default function Home() {
 
   const db = useSQLiteContext();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
+  // React.useEffect(() => {
+  //   const updateDatabase = async () => {
+  //     await checkAndCopyDatabase();
+  //   };
+  //   updateDatabase();
+  // }, []);
 
   useFocusEffect(
     React.useCallback(() => {
