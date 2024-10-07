@@ -1,35 +1,35 @@
 import { useSQLiteContext } from "expo-sqlite";
-import { Goal, Category, Budget, Transaction } from "../types/types";
+import { TransactionsCategories, Budgets, Transactions, SavingsGoals } from "../types/types";
 
 export const useGoalDataAccess = () => {
     const db = useSQLiteContext();
 
-    const getGoals = async (): Promise<Goal[]> => {
-        const results = await db.getAllAsync<Goal>('SELECT * FROM Goals');
+    const getGoals = async (): Promise<SavingsGoals[]> => {
+        const results = await db.getAllAsync<SavingsGoals>('SELECT * FROM SavingsGoals');
         return results;
     };
 
-    const getCategories = async (): Promise<Category[]> => {
-        const results = await db.getAllAsync<Category>('SELECT * FROM Categories');
+    const getCategories = async (): Promise<TransactionsCategories[]> => {
+        const results = await db.getAllAsync<TransactionsCategories>('SELECT * FROM TransactionsCategories');
         return results;
     };
 
-    const insertGoal = async (goal: Goal) => {
+    const insertGoal = async (SavingsGoals: SavingsGoals) => {
         await db.runAsync(
-            'INSERT INTO Goals (name, amount, progress) VALUES (?, ?, ?);',
-            [goal.name, goal.amount, goal.progress]
+            'INSERT INTO SavingsGoals (name, amount, progress) VALUES (?, ?, ?);',
+            [SavingsGoals.name, SavingsGoals.amount, SavingsGoals.progress]
         );
     };
 
-    const updateGoal = async (goal: Goal) => {
+    const updateGoal = async (SavingsGoals: SavingsGoals) => {
         await db.runAsync(
-            'UPDATE Goals SET name = ?, amount = ?, progress = ? WHERE id = ?;',
-            [goal.name, goal.amount, goal.progress, goal.id]
+            'UPDATE SavingsGoals SET name = ?, amount = ?, progress = ? WHERE id = ?;',
+            [SavingsGoals.name, SavingsGoals.amount, SavingsGoals.progress, SavingsGoals.id]
         );
     };
 
     const deleteGoal = async (id: number) => {
-        await db.runAsync('DELETE FROM Goals WHERE id = ?;', [id]);
+        await db.runAsync('DELETE FROM SavingsGoals WHERE id = ?;', [id]);
     };
     
     
@@ -41,8 +41,8 @@ export const useGoalDataAccess = () => {
         );
       };
 
-    const getBudgets = async (): Promise<Budget[]> => {
-        const results = await db.getAllAsync<Budget>('SELECT * FROM Budgets');
+    const getBudgets = async (): Promise<Budgets[]> => {
+        const results = await db.getAllAsync<Budgets>('SELECT * FROM Budgets');
         return results;
     };
 
@@ -60,8 +60,8 @@ export const useGoalDataAccess = () => {
         );
     };
     
-    const getTransactionsForCategory = async (categoryId: number, startDate: Date, endDate: Date): Promise<Transaction[]> => {
-        const results = await db.getAllAsync<Transaction>(
+    const getTransactionsForCategory = async (categoryId: number, startDate: Date, endDate: Date): Promise<Transactions[]> => {
+        const results = await db.getAllAsync<Transactions>(
             'SELECT * FROM Transactions WHERE category_id = ? AND date BETWEEN ? AND ?',
             [categoryId, startDate.getTime(), endDate.getTime()]
         );

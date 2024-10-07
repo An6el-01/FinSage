@@ -369,15 +369,13 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { RootStackParamList } from './types/navigationTypes';
-// import { checkAndCopyDatabase } from "./Utils/dbUtils";
+import { checkAndCopyDatabase } from "./Utils/dbUtils";
 
 // Screens
 import BottomNavBar from "./navigation/BottomNavBar"; // Import the BottomNavBar
 import LogInPage from "./screens/LogInPage";
 import SignUpPage from "./screens/SignUpPage";
 
-
-const DB_VERSION = "1.0";
 
 type AuthContextType = {
   signIn: (token: string) => void;
@@ -443,11 +441,10 @@ const App = () => {
 
       try {
         userToken = await AsyncStorage.getItem('userToken');
+         // await checkAndCopyDatabase();
       } catch (e) {
         console.error(e);
       }
-      // await checkAndCopyDatabase();
-
       dispatch({ type: 'RESTORE_TOKEN', token: userToken });
     };
 

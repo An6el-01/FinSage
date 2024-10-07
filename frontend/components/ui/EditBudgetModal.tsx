@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, TextInput, Button, StyleSheet } from 'react-native';
-import { Category, Budget } from '../../types/types'; // Import the Category and Budget types
+import { TransactionsCategories, Budgets } from '../../types/types'; // Import the Category and Budget types
 
 interface EditBudgetModalProps {
   visible: boolean;
   onClose: () => void;
   updateBudget: (categoryId: number, amount: number, type: 'monthly' | 'weekly') => Promise<void>; // Expect 3 arguments
   loadBudgets: () => Promise<void>;
-  budgets: { [key: string]: Budget };  // Add budgets here
-  categories: Category[];  // Use the imported Category type here
+  budgets: { [key: string]: Budgets };  // Add budgets here
+  categories: TransactionsCategories[];  // Use the imported Category type here
   category: string;
   initialAmount: string;
 }

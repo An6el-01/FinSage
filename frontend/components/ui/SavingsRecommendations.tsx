@@ -92,7 +92,7 @@ const SavingsRecommendations: React.FC<Props> = ({ onClose }) => {
 
   const fetchCategoriesFromDB = async (): Promise<any[]> => {
     try {
-      return await db.getAllAsync('SELECT * FROM Categories');
+      return await db.getAllAsync('SELECT * FROM TransactionsCategories');
     } catch (error) {
       console.error('Error fetching categories:', error);
       throw error;

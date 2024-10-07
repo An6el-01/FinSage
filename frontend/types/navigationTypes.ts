@@ -11,4 +11,5 @@ export type RootStackParamList = {
     SignUpPage: undefined;
     UserStack: undefined;
     Settings: undefined;
+    AllTransactions: undefined;
 };

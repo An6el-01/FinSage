@@ -1,13 +1,13 @@
 import { AntDesign } from "@expo/vector-icons";
 import { StyleSheet, Text, View } from "react-native";
-import { Category, Transaction } from "../types/types";
+import { TransactionsCategories, Transactions } from "../types/types";
 import { AutoSizeText, ResizeTextMode } from "react-native-auto-size-text";
 import { categoryColors, categoryEmojies } from "../types/constants";
 import Card from "./ui/Card";
 
 interface TransactionListItemProps {
-  transaction: Transaction;
-  categoryInfo: Category | undefined;
+  transaction: Transactions;
+  categoryInfo: TransactionsCategories | undefined;
 }
 
 export default function TransactionListItem({
@@ -70,7 +70,7 @@ function CategoryItem({
   emoji,
 }: {
   categoryColor: string;
-  categoryInfo: Category | undefined;
+  categoryInfo: TransactionsCategories | undefined;
   emoji: string;
 }) {
   return (

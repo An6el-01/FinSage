@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ScrollView, Text, View, StyleSheet, Button, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { Goal } from '../types/types';
+import { SavingsGoals } from '../types/types';
 import { useGoalDataAccess } from "../database/GoalDataAccess";
 import Card from '../components/ui/Card';
 import AddGoal from '../components/AddGoal';
@@ -8,6 +8,9 @@ import UpdateGoal from '../components/UpdateGoal';
 import DepositGoal from '../components/DepositGoal';
 import { Ionicons } from '@expo/vector-icons';
 import ProgressBar from '../components/ui/ProgressBar'; 
+import { NavigationProp } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import { RootStackParamList } from '../types/navigationTypes';
 
 const colors = {
   primary: "#FCB900",
@@ -84,6 +87,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.background,
   },
+  settingsIcon: {
+    alignItems: 'center',
+    marginRight:  13,
+  },
+  settingsIconName: {
+    marginTop: 3,
+    fontSize: 12,
+    color: '#212121',
+  }
 });
 
 const formatCurrency = (value: number) => {
@@ -92,15 +104,28 @@ const formatCurrency = (value: number) => {
 
 export default function FinancialGoals() {
   const { getGoals, insertGoal, updateGoal, deleteGoal } = useGoalDataAccess();
-  const [goals, setGoals] = React.useState<Goal[]>([]);
+  const [goals, setGoals] = React.useState<SavingsGoals[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [showAddGoal, setShowAddGoal] = React.useState<boolean>(false);
-  const [showUpdateGoal, setShowUpdateGoal] = React.useState<Goal | null>(null);
-  const [showDepositGoal, setShowDepositGoal] = React.useState<Goal | null>(null);
+  const [showUpdateGoal, setShowUpdateGoal] = React.useState<SavingsGoals | null>(null);
+  const [showDepositGoal, setShowDepositGoal] = React.useState<SavingsGoals | null>(null);
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
 
   React.useEffect(() => {
     loadGoals();
   }, []);
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity style={styles.settingsIcon} onPress={() => navigation.navigate('Settings')}>
+          <Ionicons name="settings-outline" size={24} color="black" />
+          <Text style={styles.settingsIconName}>Settings</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
 
   const loadGoals = async () => {
     setLoading(true);

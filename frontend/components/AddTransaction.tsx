@@ -4,17 +4,17 @@ import { MaterialIcons } from "@expo/vector-icons";
 import Card from "./ui/Card";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useSQLiteContext } from "expo-sqlite/next";
-import { Category, Transaction } from "../types/types";
+import { TransactionsCategories, Transactions } from "../types/types";
 
 export default function AddTransaction({
   insertTransaction,
 }: {
-  insertTransaction(transaction: Transaction): Promise<void>;
+  insertTransaction(transaction: Transactions): Promise<void>;
 }) {
   const [isAddingTransaction, setIsAddingTransaction] =
     React.useState<boolean>(false);
   const [currentTab, setCurrentTab] = React.useState<number>(0);
-  const [categories, setCategories] = React.useState<Category[]>([]);
+  const [categories, setCategories] = React.useState<TransactionsCategories[]>([]);
   const [typeSelected, setTypeSelected] = React.useState<string>("");
   const [amount, setAmount] = React.useState<string>("");
   const [description, setDescription] = React.useState<string>("");
@@ -30,8 +30,8 @@ export default function AddTransaction({
     setCategory(currentTab === 0 ? "Expense" : "Income");
     const type = currentTab === 0 ? "Expense" : "Income";
 
-    const result = await db.getAllAsync<Category>(
-      `SELECT * FROM Categories WHERE type = ?;`,
+    const result = await db.getAllAsync<TransactionsCategories>(
+      `SELECT * FROM TransactionsCategories WHERE type = ?;`,
       [type]
     );
     setCategories(result);

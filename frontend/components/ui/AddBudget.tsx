@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Button } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Button, Alert } from 'react-native';
 import CustomSlider from './CustomSlider';
-import { Category } from '../../types/types';
+import { TransactionsCategories } from '../../types/types';
 
 const colors = {
   primary: "#FCB900",
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
 });
 
 interface AddBudgetProps {
-  categories: Category[];
+  categories: TransactionsCategories[];
   onAddBudget: (category: string, type: 'weekly' | 'monthly', amount: number) => void;
 }
 
@@ -73,12 +73,16 @@ const AddBudget: React.FC<AddBudgetProps> = ({ categories, onAddBudget }) => {
   const [amount, setAmount] = useState<number>(0);
 
   const handleAddBudget = () => {
-    if (selectedCategory) {
+    if (selectedCategory && amount > 0) { // Ensure valid amount
       onAddBudget(selectedCategory, budgetType, amount);
       setSelectedCategory(null);
       setAmount(0);
+      Alert.alert("Success", "Budget added successfully!"); // Success message
+    } else {
+      Alert.alert("Invalid Input", "Please select a category and enter a valid amount."); // Error message for invalid input
     }
   };
+  
 
   return (
     <View style={styles.container}>

@@ -3,25 +3,19 @@ import * as FileSystem from "expo-file-system";
 import { Asset } from "expo-asset";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// Define the current database version
-const DB_VERSION = "1.0"; // Increment this every time you update the database
 
 export const checkAndCopyDatabase = async () => {
   const dbName = "mySQLiteDB.db"; // Database name
   const dbAsset = require("../assets/mySQLiteDB.db"); // Path to the database asset
   const dbFilePath = `${FileSystem.documentDirectory}SQLite/${dbName}`; // Path to where the database will be copied
 
-  // Get the current version of the database stored on the device
-  const storedVersion = await AsyncStorage.getItem("DB_VERSION");
-
-  if (storedVersion !== DB_VERSION) {
-    // If no version is found or the versions do not match, update the database
-    console.log("Updating database...");
-
+  try {
+    // Always delete the existing database if it exists
     const fileInfo = await FileSystem.getInfoAsync(dbFilePath);
     if (fileInfo.exists) {
-      // Delete the old database
-      await FileSystem.deleteAsync(dbFilePath);
+      console.log("Deleting old database...");
+      await FileSystem.deleteAsync(dbFilePath, { idempotent: true }); // Set idempotent to avoid errors if the file doesn't exist
+      console.log("Old database deleted.");
     }
 
     // Ensure the SQLite folder exists
@@ -29,12 +23,12 @@ export const checkAndCopyDatabase = async () => {
 
     // Copy the new database from assets
     const dbUri = Asset.fromModule(dbAsset).uri;
+    console.log("Copying new database from assets...");
     await FileSystem.downloadAsync(dbUri, dbFilePath);
+    console.log("New database copied successfully.");
 
-    // Update the stored version
-    await AsyncStorage.setItem("DB_VERSION", DB_VERSION);
-    console.log("Database updated to version:", DB_VERSION);
-  } else {
-    console.log("Database is up to date.");
+    
+  } catch (error) {
+    console.error("Error updating database:", error);
   }
 };

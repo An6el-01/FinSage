@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
-import { Goal } from '../types/types';
+import { SavingsGoals } from '../types/types';
 
 const colors = {
     primary: '#FCB900',
@@ -23,12 +23,12 @@ const styles = StyleSheet.create({
     },
 });
 
-export default function AddGoal({ insertGoal, loadGoals, setShowAddGoal }: { insertGoal: (goal: Goal) => Promise<void>, loadGoals: () => Promise<void>, setShowAddGoal: React.Dispatch<React.SetStateAction<boolean>> }) {
-    const [newGoal, setNewGoal] = React.useState<Goal>({ id: 0, name: '', amount: 0, progress: 0 });
+export default function AddGoal({ insertGoal, loadGoals, setShowAddGoal }: { insertGoal: (goal: SavingsGoals) => Promise<void>, loadGoals: () => Promise<void>, setShowAddGoal: React.Dispatch<React.SetStateAction<boolean>> }) {
+    const [newGoal, setNewGoal] = React.useState<SavingsGoals>({ id: 0, user_id: 0, name: '', amount: 0, progress: 0, target_date: 0 }); // CHECK IF THIS IS CORRECT FOR TARGET_DATE AND USER_ID
 
     const handleAddGoal = async () => {
         await insertGoal(newGoal);
-        setNewGoal({ id: 0, name: '', amount: 0, progress: 0 });
+        setNewGoal({ id: 0,user_id: 0 ,name: '', amount: 0, progress: 0, target_date: 0 }); //CHECK IF THIS IS CORRECT FOR THE TARGET_DATE AND USER_ID
         loadGoals();
         setShowAddGoal(false); // Close the AddGoal component
     };

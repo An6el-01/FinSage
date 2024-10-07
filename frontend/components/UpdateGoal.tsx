@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { View, TextInput, Button, StyleSheet } from 'react-native';
-import { Goal } from '../types/types';
+import { SavingsGoals } from '../types/types';
 
 const colors = {
   primary: '#FCB900',
@@ -23,8 +23,8 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function UpdateGoal({ goal, updateGoal, loadGoals, setShowUpdateGoal }: { goal: Goal, updateGoal: (goal: Goal) => Promise<void>, loadGoals: () => Promise<void>, setShowUpdateGoal: React.Dispatch<React.SetStateAction<Goal | null>> }) {
-  const [updatedGoal, setUpdatedGoal] = React.useState<Goal>({ ...goal });
+export default function UpdateGoal({ goal, updateGoal, loadGoals, setShowUpdateGoal }: { goal: SavingsGoals, updateGoal: (goal: SavingsGoals) => Promise<void>, loadGoals: () => Promise<void>, setShowUpdateGoal: React.Dispatch<React.SetStateAction<SavingsGoals | null>> }) {
+  const [updatedGoal, setUpdatedGoal] = React.useState<SavingsGoals>({ ...goal });
 
   const handleUpdateGoal = async () => {
     await updateGoal(updatedGoal);

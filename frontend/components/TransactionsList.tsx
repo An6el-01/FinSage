@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Category, Transaction } from '../types/types';
+import { TransactionsCategories, Transactions } from '../types/types';
 import { TouchableOpacity, View, Text, Alert } from 'react-native';
 import TransactionListItem from './TransactionListItem';
 
@@ -8,8 +8,8 @@ export default function TransactionList({
   categories,
   deleteTransaction,
 }: {
-  categories: Category[];
-  transactions: Transaction[];
+  categories: TransactionsCategories[];
+  transactions: Transactions[];
   deleteTransaction: (id: number) => Promise<void>;
 }) {
   return (

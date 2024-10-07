@@ -15,6 +15,7 @@ import Settings from '../screens/Settings';
 import SavingsGoals from '../screens/SavingsGoals';
 import Statistics from '../screens/Statistics';
 import YearlySummary from '../screens/YearlySummary';
+import AllTransactions from '../screens/AllTransactions';
 
 const Tab = createBottomTabNavigator();
 const StatsStack = createNativeStackNavigator<RootStackParamList>();
@@ -105,6 +106,14 @@ export default function BottomNavBar() {
         options={{
           title: 'Statistics',
           tabBarButton: () => null, // Prevent this from showing a tab bar button
+        }}
+      />
+      <Tab.Screen
+        name="AllTransactions"
+        component={AllTransactions}
+        options={{
+          title: 'Your Transactions',
+          tabBarButton: () => null,
         }}
       />
     </Tab.Navigator>

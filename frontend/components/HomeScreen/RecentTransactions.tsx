@@ -3,9 +3,11 @@ import React from 'react';
 import { View, Text, StyleSheet, Button } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { RecentTransactionProps } from '../../types/types';
+import { RootStackParamList } from '../../types/navigationTypes';
+import { NavigationProp } from '@react-navigation/native';
 
 const RecentTransactions: React.FC<RecentTransactionProps> = ({ transactions }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   return (
     <View style={styles.container}>
@@ -17,10 +19,10 @@ const RecentTransactions: React.FC<RecentTransactionProps> = ({ transactions }) 
           </Text>
         </View>
       ))}
-      {transactions.length > 5 && (
-        <Button title="View All Transactions"/>
-        // onPress={() => navigation.navigate('Transactions')} />
-      )}
+      
+        <Button title="View All Transactions"
+        onPress={() => navigation.navigate('AllTransactions')} />
+      
     </View>
   );
 };

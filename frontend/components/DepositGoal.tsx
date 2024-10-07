@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { View, TextInput, Button, StyleSheet } from 'react-native';
-import { Goal } from '../types/types';
+import { SavingsGoals } from '../types/types';
 import { useSQLiteContext } from 'expo-sqlite';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
     },
 });
 
-export default function DepositGoal({ goal, loadGoals, setShowDepositGoal }: { goal: Goal, loadGoals: () => Promise<void>, setShowDepositGoal: React.Dispatch<React.SetStateAction<Goal | null>> }) {
+export default function DepositGoal({ goal, loadGoals, setShowDepositGoal }: { goal: SavingsGoals, loadGoals: () => Promise<void>, setShowDepositGoal: React.Dispatch<React.SetStateAction<SavingsGoals | null>> }) {
     const [depositAmount, setDepositAmount] = React.useState<string>('');
     const db = useSQLiteContext();
 
@@ -39,13 +39,15 @@ export default function DepositGoal({ goal, loadGoals, setShowDepositGoal }: { g
         }
     };
 
-    const depositGoal = async (goal: Goal, amount: number) => {
+    const depositGoal = async (goal: SavingsGoals, amount: number) => {
         const date = new Date().getTime();
         try {    
             const updateResult = await db.runAsync(
-                'UPDATE Goals SET progress = progress + ? WHERE id = ?;',
+                'UPDATE SavingsGoals SET progress = progress + ? WHERE id = ?;',
                 [amount, goal.id]
             );    
+
+            // SORT THIS FOR NOTIFICATION FOR CONTRIBUTIONS ON DEPOSITING TO PENDING GOALS
             const insertResult = await db.runAsync(
                 'INSERT INTO Contributions (goal_id, amount, date) VALUES (?, ?, ?);',
                 [goal.id, amount, date]
@@ -68,6 +70,7 @@ export default function DepositGoal({ goal, loadGoals, setShowDepositGoal }: { g
         }
     };
     
+    //SORT THIS FOR NOTIFICATIONS ON CONTRIBUTING TO PENDING GOALS
     const logContributions = async (goalId: number) => {
         try {
             const contributions = await db.getAllAsync<{ id: number; goal_id: number; amount: number; date: number }>(
@@ -82,7 +85,7 @@ export default function DepositGoal({ goal, loadGoals, setShowDepositGoal }: { g
             console.error("Error logging contributions:", error);
         }
     };
-
+    // SORT THIS FOR NOTIFICATIONS ON CONTRIBUTING TO PENDING GOALS
     const sendNotification = async (goalName: string) => {
         await Notifications.scheduleNotificationAsync({
             content: {

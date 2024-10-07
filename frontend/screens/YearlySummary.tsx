@@ -4,7 +4,7 @@ import { useSQLiteContext } from 'expo-sqlite/next';
 import { useFocusEffect } from '@react-navigation/native';
 import { BarChart, LineChart } from 'react-native-chart-kit';
 import PieChart from 'react-native-pie-chart';
-import { Transaction, Category } from '../types/types';
+import { Transactions, TransactionsCategories } from '../types/types';
 import { categoryColors, categoryEmojies } from '../types/constants';
 
 const colors = {
@@ -99,22 +99,22 @@ const getTextColorForBackground = (backgroundColor: string) => {
 
 export default function YearlySummary() {
   const db = useSQLiteContext();
-  const [data, setData] = React.useState<Transaction[]>([]);
-  const [categories, setCategories] = React.useState<Category[]>([]);
+  const [data, setData] = React.useState<Transactions[]>([]);
+  const [categories, setCategories] = React.useState<TransactionsCategories[]>([]);
   const [currentYear, setCurrentYear] = React.useState(new Date().getFullYear());
 
   const fetchData = async () => {
     const startOfYear = new Date(currentYear, 0, 1).getTime();
     const endOfYear = new Date(currentYear + 1, 0, 1).getTime();
 
-    const result = await db.getAllAsync<Transaction>(
+    const result = await db.getAllAsync<Transactions>(
       `SELECT * FROM Transactions WHERE date >= ? AND date <= ? ORDER BY date DESC;`,
       [startOfYear, endOfYear]
     );
     setData(result);
 
-    const categoriesResult = await db.getAllAsync<Category>(
-      `SELECT * FROM Categories;`
+    const categoriesResult = await db.getAllAsync<TransactionsCategories>(
+      `SELECT * FROM TransactionsCategories;`
     );
     setCategories(categoriesResult);
   };

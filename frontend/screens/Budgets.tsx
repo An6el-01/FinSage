@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ScrollView, Text, View, StyleSheet, Button, ActivityIndicator, TouchableOpacity, Alert, Modal } from 'react-native';
-import { Category, Budget } from '../types/types';
+import { TransactionsCategories, Budgets } from '../types/types';
 import { useGoalDataAccess } from '../database/useGoalDataAccess';
 import Card from '../components/ui/Card';
 import ProgressBar from '../components/ui/ProgressBar';
@@ -10,10 +10,6 @@ import { Ionicons } from '@expo/vector-icons';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import SavingsRecommendations from '../components/ui/SavingsRecommendations';  // Import the new component
-import { NavigationProp } from '@react-navigation/native';
-import { useNavigation } from '@react-navigation/native';
-import { RootStackParamList } from '../types/navigationTypes';
-import { useSQLiteContext } from 'expo-sqlite';
 
 const colors = {
   primary: "#FCB900",
@@ -127,30 +123,18 @@ const styles = StyleSheet.create({
     top: 10,
     right: 10,
   },
-  settingsIcon: {
-    alignItems: 'center',
-    marginRight: 13,
-  },
-  settingsIconName: {
-    marginTop: 3,
-    fontSize:12,
-    color: '#212121',
-  },
 });
 
 const Budgeting = () => {
   const { getCategories, insertBudget, getBudgets, deleteBudget, updateBudget, getTransactionsForCategory } = useGoalDataAccess();
-  const [categories, setCategories] = React.useState<Category[]>([]);
-  const [budgets, setBudgets] = React.useState<Budget[]>([]);
+  const [categories, setCategories] = React.useState<TransactionsCategories[]>([]);
+  const [budgets, setBudgets] = React.useState<Budgets[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [showAddBudget, setShowAddBudget] = React.useState<boolean>(false);
   const [editModalVisible, setEditModalVisible] = React.useState<boolean>(false);
   const [editCategory, setEditCategory] = React.useState<string>('');
   const [initialAmount, setInitialAmount] = React.useState<string>('');
   const [showRecommendations, setShowRecommendations] = React.useState<boolean>(false);  // State for showing recommendations
-  const db = useSQLiteContext();
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-
 
   React.useEffect(() => {
     const loadInitialData = async () => {
@@ -182,32 +166,29 @@ const Budgeting = () => {
         })
       );
 
-      setBudgets(budgetMap.filter(Boolean) as Budget[]);  // Filter out undefined values
+      setBudgets(budgetMap.filter(Boolean) as Budgets[]);  // Filter out undefined values
       setLoading(false);
     };
 
     loadInitialData();
   }, []);
 
-  React.useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity style={styles.settingsIcon} onPress={() => navigation.navigate('Settings')}>
-          <Ionicons name="settings-outline" size={24} color="black" />
-          <Text style={styles.settingsIconName}>Settings</Text>
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation]);
-
   const handleAddBudget = async (categoryName: string, type: 'monthly' | 'weekly', amount: number) => {
     const category = categories.find(cat => cat.name === categoryName);
     if (category) {
-      await insertBudget(category.id, amount, type);
-      await loadBudgets(); // Reload budgets from the database
-      setShowAddBudget(false);
+      try {
+        await insertBudget(category.id, amount, type);
+        await loadBudgets(); // Reload budgets from the database
+        setShowAddBudget(false);
+        Alert.alert("Success", "Budget added successfully!"); // Success message
+      } catch (error) {
+        console.error('Error adding budget:', error);
+        Alert.alert("Error", "There was an issue adding the budget. Please try again."); // Error message
+      }
+    } else {
+      Alert.alert("Error", "Category not found. Please select a valid category."); // Error message
     }
-  };
+};
 
   const loadBudgets = async () => {
     const fetchedBudgets = await getBudgets();
@@ -235,7 +216,7 @@ const Budgeting = () => {
       })
     );
 
-    setBudgets(budgetMap.filter(Boolean) as Budget[]);  // Filter out undefined values
+    setBudgets(budgetMap.filter(Boolean) as Budgets[]);  // Filter out undefined values
   };
 
   const handleDeleteBudget = (category: string) => {
@@ -285,6 +266,7 @@ const Budgeting = () => {
           <Text style={styles.iconText}>Ask Ai</Text>
 
       </TouchableOpacity>
+        <Text style={styles.text}>Budgeting</Text>
         {showAddBudget ? (
           <>
             <Button title="Back" onPress={() => setShowAddBudget(false)} />
@@ -345,7 +327,7 @@ const Budgeting = () => {
               acc[category.name] = budget;
             }
             return acc;
-          }, {} as { [key: string]: Budget })}
+          }, {} as { [key: string]: Budgets })}
           categories={categories}
           category={editCategory}
           initialAmount={initialAmount}

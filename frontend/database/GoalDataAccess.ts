@@ -1,36 +1,36 @@
 import { useSQLiteContext } from "expo-sqlite/next";
-import { Goal } from "../types/types";
+import { SavingsGoals } from "../types/types";
 
 export const useGoalDataAccess = () => {
   const db = useSQLiteContext();
 
-  const getGoals = async (): Promise<Goal[]> => {
-    const results = await db.getAllAsync<Goal>(`SELECT * FROM Goals;`);
+  const getGoals = async (): Promise<SavingsGoals[]> => {
+    const results = await db.getAllAsync<SavingsGoals>(`SELECT * FROM SavingsGoals;`);
     return results;
   };
 
-  const insertGoal = async (goal: Goal) => {
+  const insertGoal = async (SavingsGoals: SavingsGoals) => {
     await db.runAsync(
-      `INSERT INTO Goals (name, amount, progress) VALUES (?, ?, ?);`,
-      [goal.name, goal.amount, goal.progress]
+      `INSERT INTO SavingsGoals (name, amount, progress) VALUES (?, ?, ?);`,
+      [SavingsGoals.name, SavingsGoals.amount, SavingsGoals.progress]
     );
   };
 
-  const updateGoal = async (goal: Goal) => {
+  const updateGoal = async (SavingsGoals: SavingsGoals) => {
     await db.runAsync(
       `UPDATE Goals SET name = ?, amount = ?, progress = ? WHERE id = ?;`,
-      [goal.name, goal.amount, goal.progress, goal.id]
+      [SavingsGoals.name, SavingsGoals.amount, SavingsGoals.progress, SavingsGoals.id]
     );
   };
 
   const deleteGoal = async (id: number) => {
-    await db.runAsync(`DELETE FROM Goals WHERE id = ?;`, [id]);
+    await db.runAsync(`DELETE FROM SavingsGoals WHERE id = ?;`, [id]);
   };
 
-  const depositGoal = async (goal: Goal, amount:number) => {
+  const depositGoal = async (SavingsGoals: SavingsGoals, amount:number) => {
     await db.runAsync(
-      `UPDATE Goals SET progress = progress + ? WHERE id = ?;`,
-      [amount, goal.id]
+      `UPDATE Goals SET spent = spent + ? WHERE id = ?;`,
+      [amount, SavingsGoals.id]
     );
   };
 

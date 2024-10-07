@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ScrollView, Text, View, StyleSheet, TouchableOpacity, Button } from 'react-native';
-import { Category, Transaction } from "../types/types";
+import { TransactionsCategories, Transactions } from "../types/types";
 import { useSQLiteContext } from 'expo-sqlite/next';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { categoryColors, categoryEmojies } from '../types/constants'; // Import category colors and emojis
@@ -117,10 +117,10 @@ type GroupedTransactions = {
 };
 
 export default function Statistics() {
-  const [data, setData] = React.useState<Transaction[]>([]);
+  const [data, setData] = React.useState<Transactions[]>([]);
   const [filter, setFilter] = React.useState<string>('Expense');
   const [currentMonth, setCurrentMonth] = React.useState(new Date());
-  const [categories, setCategories] = React.useState<Category[]>([]);
+  const [categories, setCategories] = React.useState<TransactionsCategories[]>([]);
   const db = useSQLiteContext();
   const navigation = useNavigation<any>(); 
 
@@ -132,15 +132,15 @@ export default function Statistics() {
     const startOfMonthTimestamp = Math.floor(startOfMonth.getTime());
     const endOfMonthTimestamp = Math.floor(endOfMonth.getTime());
 
-    const result = await db.getAllAsync<Transaction>(
+    const result = await db.getAllAsync<Transactions>(
       `SELECT * FROM Transactions WHERE date >= ? AND date <= ? ORDER BY date DESC;`,
       [startOfMonthTimestamp, endOfMonthTimestamp]
     );
     console.log("Transactions fetched in Statistics.tsx:", result); // Debugging log
     setData(result);
 
-    const categoriesResult = await db.getAllAsync<Category>(
-      `SELECT * FROM Categories;`
+    const categoriesResult = await db.getAllAsync<TransactionsCategories>(
+      `SELECT * FROM TransactionsCategories;`
     );
     setCategories(categoriesResult);
 };
@@ -186,7 +186,7 @@ export default function Statistics() {
   const netBalance = totalIncome - totalExpenses;
 
   // Group transactions by category
-  const groupedTransactions: GroupedTransactions = filteredData.reduce((acc: GroupedTransactions, transaction: Transaction) => {
+  const groupedTransactions: GroupedTransactions = filteredData.reduce((acc: GroupedTransactions, transaction: Transactions) => {
     const category = transaction.category_id.toString();
     if (!acc[category]) {
       acc[category] = {
