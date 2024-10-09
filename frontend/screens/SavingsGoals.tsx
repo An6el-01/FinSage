@@ -178,6 +178,7 @@ export default function FinancialGoals() {
               </View>
               <Text style={styles.goalAmount}>Goal: {formatCurrency(goal.amount)}</Text>
               <Text style={styles.goalProgress}>Progress: {formatCurrency(goal.progress)}</Text>
+              <Text style={styles.goalProgress}>Target Date: {new Date(goal.target_date).toLocaleDateString()}</Text>
               <ProgressBar progress={goal.progress / goal.amount} />
               <View style={styles.buttonContainer}>
                 <TouchableOpacity style={styles.iconButton} onPress={() => setShowUpdateGoal(goal)}>

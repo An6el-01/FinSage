@@ -5,6 +5,8 @@ import { useSQLiteContext } from 'expo-sqlite/next'; // Assuming you're using ex
 import bcrypt from 'react-native-bcrypt'; // Correct bcrypt library for React Native
 import { RootStackParamList } from '../types/navigationTypes';
 import { Users } from '../types/types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const SignUpPage = () => {
   const [username, setUsername] = React.useState('');
@@ -44,8 +46,17 @@ const SignUpPage = () => {
         [username, email, passwordHash, createdAt, updatedAt, isPremium ? 1 : 0] // Save 1 for premium, 0 otherwise
       );
 
-      Alert.alert('Success', 'Account created successfully.');
-      navigation.navigate('LoginPage'); // Navigate back to login page
+      const newUser = await db.getAllAsync<Users>(
+        'SELECT * FROM Users WHERE username = ? AND email = ?',
+        [username, email]
+      ); 
+
+      if (newUser.length > 0){
+        const userId = newUser[0].id;
+        await AsyncStorage.setItem('userId', String(userId));
+        Alert.alert('Success', 'Account created successfully.');
+        navigation.navigate('LoginPage');
+      }
     } catch (error) {
       Alert.alert('Error', 'Failed to create account. Please try again.');
       console.error('Sign-up Error:', error);

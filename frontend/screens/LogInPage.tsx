@@ -7,6 +7,7 @@ import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSQLiteContext } from 'expo-sqlite/next'; // Import SQLite context
 import bcrypt from 'react-native-bcrypt'; // Import bcrypt for password hashing
 import { Users } from '../types/types';
+import  BottomNavBar  from '../navigation/BottomNavBar';
 
 const LogInPage = () => {
   const [username, setUsername] = React.useState('');
@@ -33,7 +34,9 @@ const LogInPage = () => {
 
         if (isPasswordValid) {
           await AsyncStorage.setItem('isLoggedIn', 'true');
-          authContext?.signIn('dummy-auth-token'); // Ensure signIn exists in AuthContext
+          await AsyncStorage.setItem('user_id', String(user.id));
+
+          authContext?.signIn('dummy-auth-token');
           Alert.alert('Success', 'You have successfully logged in!');
         } else {
           Alert.alert('Login Failed', 'Invalid username or password');

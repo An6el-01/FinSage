@@ -4,35 +4,10 @@ import { TransactionsCategories, Budgets, Transactions, SavingsGoals } from "../
 export const useGoalDataAccess = () => {
     const db = useSQLiteContext();
 
-    const getGoals = async (): Promise<SavingsGoals[]> => {
-        const results = await db.getAllAsync<SavingsGoals>('SELECT * FROM SavingsGoals');
-        return results;
-    };
-
     const getCategories = async (): Promise<TransactionsCategories[]> => {
         const results = await db.getAllAsync<TransactionsCategories>('SELECT * FROM TransactionsCategories');
         return results;
     };
-
-    const insertGoal = async (SavingsGoals: SavingsGoals) => {
-        await db.runAsync(
-            'INSERT INTO SavingsGoals (name, amount, progress) VALUES (?, ?, ?);',
-            [SavingsGoals.name, SavingsGoals.amount, SavingsGoals.progress]
-        );
-    };
-
-    const updateGoal = async (SavingsGoals: SavingsGoals) => {
-        await db.runAsync(
-            'UPDATE SavingsGoals SET name = ?, amount = ?, progress = ? WHERE id = ?;',
-            [SavingsGoals.name, SavingsGoals.amount, SavingsGoals.progress, SavingsGoals.id]
-        );
-    };
-
-    const deleteGoal = async (id: number) => {
-        await db.runAsync('DELETE FROM SavingsGoals WHERE id = ?;', [id]);
-    };
-    
-    
 
     const insertBudget = async (categoryId: number, amount: number, type: 'monthly' | 'weekly') => {
         await db.runAsync(
@@ -69,11 +44,7 @@ export const useGoalDataAccess = () => {
     };
       
     return {
-        getGoals,
         getCategories,
-        insertGoal,
-        updateGoal,
-        deleteGoal,
         insertBudget,
         getBudgets,
         deleteBudget,

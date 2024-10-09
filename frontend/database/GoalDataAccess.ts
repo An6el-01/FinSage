@@ -5,27 +5,31 @@ export const useGoalDataAccess = () => {
   const db = useSQLiteContext();
 
   const getGoals = async (): Promise<SavingsGoals[]> => {
-    const results = await db.getAllAsync<SavingsGoals>(`SELECT * FROM SavingsGoals;`);
+    const results = await db.getAllAsync<SavingsGoals>('SELECT * FROM SavingsGoals');
     return results;
-  };
+};
 
-  const insertGoal = async (SavingsGoals: SavingsGoals) => {
+  const insertGoal = async (goal: SavingsGoals) => {
+    console.log('Inserting goal with user_id:', goal.user_id);
     await db.runAsync(
-      `INSERT INTO SavingsGoals (name, amount, progress) VALUES (?, ?, ?);`,
-      [SavingsGoals.name, SavingsGoals.amount, SavingsGoals.progress]
-    );
-  };
+        'INSERT INTO SavingsGoals (user_id, name, amount, progress, target_date) VALUES (?, ?, ?, ?, ?);',
+        [goal.user_id, goal.name, goal.amount, goal.progress, goal.target_date]
+    );        
+};
 
-  const updateGoal = async (SavingsGoals: SavingsGoals) => {
-    await db.runAsync(
-      `UPDATE Goals SET name = ?, amount = ?, progress = ? WHERE id = ?;`,
-      [SavingsGoals.name, SavingsGoals.amount, SavingsGoals.progress, SavingsGoals.id]
-    );
-  };
+const updateGoal = async (goal: SavingsGoals) => {
+  await db.runAsync(
+      'UPDATE SavingsGoals SET name = ?, amount = ?, progress = ?, target_date = ? WHERE id = ?;',
+      [goal.name, goal.amount, goal.progress, goal.target_date, goal.id]
+  );
+};
 
-  const deleteGoal = async (id: number) => {
-    await db.runAsync(`DELETE FROM SavingsGoals WHERE id = ?;`, [id]);
-  };
+
+const deleteGoal = async (id: number) => {
+  await db.runAsync('DELETE FROM SavingsGoals WHERE id = ?;', [id]);
+};
+
+
 
   const depositGoal = async (SavingsGoals: SavingsGoals, amount:number) => {
     await db.runAsync(

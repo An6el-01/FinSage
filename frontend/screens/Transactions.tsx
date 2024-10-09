@@ -4,7 +4,7 @@ import Card from '../components/ui/Card';
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useSQLiteContext } from 'expo-sqlite/next';
 import { TransactionsCategories, Transactions } from '../types/types';
-import { useGoalDataAccess } from '../database/useGoalDataAccess';
+import { useGoalDataAccess } from '../database/BudgetDataAccess';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -127,9 +127,14 @@ export default function NewTransaction() {
   };
 
   async function handleSave() {
+    const storedUserId = await AsyncStorage.getItem('user_id');
+    if(!storedUserId) {
+      Alert.alert("Error","User not loggedin. Please log in first.");
+      return;
+    }
     const transaction = {
       id: 0,
-      user_id: 0, //CHANGE THIS TO ACTUAL user_id OF THE LOGGED IN USER FOR PROPER FUCNTIONALITY
+      user_id: Number(storedUserId), //CHANGE THIS TO ACTUAL user_id OF THE LOGGED IN USER FOR PROPER FUCNTIONALITY
       amount: Number(amount),
       description,
       category_id: categoryId,
