@@ -1,15 +1,16 @@
 import * as React from 'react';
 import { ScrollView, Text, View, StyleSheet, Button, ActivityIndicator, TouchableOpacity, Alert, Modal } from 'react-native';
 import { TransactionsCategories, Budgets } from '../types/types';
-import { useGoalDataAccess } from '../database/BudgetDataAccess';
+import { useGoalDataAccess } from '../components/BudgetsScreen/BudgetDataAccess';
 import Card from '../components/ui/Card';
 import ProgressBar from '../components/ui/ProgressBar';
-import AddBudget from '../components/ui/AddBudget';
-import EditBudgetModal from '../components/ui/EditBudgetModal';
+import AddBudget from '../components/BudgetsScreen/AddBudget';
+import EditBudgetModal from '../components/BudgetsScreen/EditBudgetModal';
 import { Ionicons } from '@expo/vector-icons';
 import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
-import SavingsRecommendations from '../components/ui/SavingsRecommendations';  // Import the new component
+import SavingsRecommendations from '../components/SavingsGoalsScreen/AISavingsRecommendations';  // Import the new component
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const colors = {
   primary: "#FCB900",
@@ -177,7 +178,12 @@ const Budgeting = () => {
     const category = categories.find(cat => cat.name === categoryName);
     if (category) {
       try {
-        await insertBudget(category.id, amount, type);
+        const userId = await AsyncStorage.getItem('user_id'); // Retrieve the user_id
+        if (!userId) {
+          Alert.alert("Error", "User not logged in. Please log in to add a budget.");
+          return;
+        }
+        await insertBudget(parseInt(userId), category.id, amount, type); // Pass user_id when inserting
         await loadBudgets(); // Reload budgets from the database
         setShowAddBudget(false);
         Alert.alert("Success", "Budget added successfully!"); // Success message
@@ -188,7 +194,8 @@ const Budgeting = () => {
     } else {
       Alert.alert("Error", "Category not found. Please select a valid category."); // Error message
     }
-};
+  };
+
 
   const loadBudgets = async () => {
     const fetchedBudgets = await getBudgets();
@@ -258,14 +265,13 @@ const Budgeting = () => {
         <TouchableOpacity
           style={styles.wizardButton}
           onPress={() => {
-            console.log('Magic wan icon pressed');
+            console.log('Magic wand icon pressed');
             setShowRecommendations(true);
           }}
           >
           <SimpleLineIcons name="magic-wand" size={32} color={colors.primary}/> 
           <Text style={styles.iconText}>Ask Ai</Text>
-
-      </TouchableOpacity>
+        </TouchableOpacity>
         <Text style={styles.text}>Budgeting</Text>
         {showAddBudget ? (
           <>

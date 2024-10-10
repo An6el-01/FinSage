@@ -1,28 +1,43 @@
-// frontend/components/HomeScreen/RecentTransactions.tsx
 import React from 'react';
-import { View, Text, StyleSheet, Button } from 'react-native';
+import { View, Text, StyleSheet, Button, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { RecentTransactionProps } from '../../types/types';
 import { RootStackParamList } from '../../types/navigationTypes';
 import { NavigationProp } from '@react-navigation/native';
+import TransactionList from '../TransactionsList';
+import { useSQLiteContext } from 'expo-sqlite/next';
 
 const RecentTransactions: React.FC<RecentTransactionProps> = ({ transactions }) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const db = useSQLiteContext();
+
+  // Display only the last 3 transactions
+  const recentTransactions = transactions.slice(0, 3);
+  
+  const deleteTransaction = async (id: number): Promise<void> => {
+    try {
+      await db.runAsync(
+        `DELETE FROM Transactions WHERE id = ?;`,
+        [id]
+      );
+      Alert.alert("Success", "Transaction deleted successfully.");
+    } catch (error) {
+      Alert.alert("Error", "Failed to delete the transaction.");
+    }
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Recent Transactions</Text>
-      {transactions.slice(0, 5).map((transaction, index) => (
-        <View key={index} style={styles.transactionRow}>
-          <Text style={styles.transactionText}>
-            {transaction.description} - ${transaction.amount.toFixed(2)}
-          </Text>
-        </View>
-      ))}
       
-        <Button title="View All Transactions"
-        onPress={() => navigation.navigate('AllTransactions')} />
-      
+      {/* Use TransactionList to render the recent transactions */}
+      <TransactionList transactions={recentTransactions} categories={[]} deleteTransaction={deleteTransaction} />
+
+      {/* Button to navigate to all transactions */}
+      <Button
+        title="View All Transactions"
+        onPress={() => navigation.navigate('AllTransactions')}
+      />
     </View>
   );
 };
@@ -31,7 +46,7 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: 20,
     backgroundColor: '#fff',
-    padding: 15,
+    padding: 10,
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: {
@@ -46,12 +61,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
-  },
-  transactionRow: {
-    marginBottom: 5,
-  },
-  transactionText: {
-    fontSize: 16,
   },
 });
 

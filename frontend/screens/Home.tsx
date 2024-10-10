@@ -78,13 +78,6 @@ export default function Home() {
   const db = useSQLiteContext();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
-  // React.useEffect(() => {
-  //    const updateDatabase = async () => {
-  //      await checkAndCopyDatabase();
-  //    };
-  //    updateDatabase();
-  //  }, []);
-
   useFocusEffect(
     React.useCallback(() => {
       db.withTransactionAsync(async () => {

@@ -1,5 +1,5 @@
 import { useSQLiteContext } from "expo-sqlite";
-import { TransactionsCategories, Budgets, Transactions, SavingsGoals } from "../types/types";
+import { TransactionsCategories, Budgets, Transactions, SavingsGoals } from "../../types/types";
 
 export const useGoalDataAccess = () => {
     const db = useSQLiteContext();
@@ -9,10 +9,11 @@ export const useGoalDataAccess = () => {
         return results;
     };
 
-    const insertBudget = async (categoryId: number, amount: number, type: 'monthly' | 'weekly') => {
+    const insertBudget = async (userId: number, categoryId: number, amount: number, type: 'monthly' | 'weekly') => {
+        const currentTimestamp = Date.now();
         await db.runAsync(
-          `INSERT INTO Budgets (category_id, amount, type) VALUES (?, ?, ?);`,
-          [categoryId, amount, type]
+          `INSERT INTO Budgets (user_id, category_id, amount, type, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?);`,
+          [userId, categoryId, amount, type, currentTimestamp, currentTimestamp]
         );
       };
 
@@ -22,11 +23,12 @@ export const useGoalDataAccess = () => {
     };
 
     const updateBudget = async (categoryId: number, amount: number, type: 'monthly' | 'weekly') => {
+        const currentTimestamp = Date.now(); // Get the current timestamp
         await db.runAsync(
-            `UPDATE Budgets SET amount = ?, spent = (SELECT SUM(amount) FROM Transactions WHERE category_id = ? AND type = ?) WHERE category_id = ? AND type = ?;`,
-            [amount, categoryId, type, categoryId, type]
+            `UPDATE Budgets SET amount = ?, spent = (SELECT SUM(amount) FROM Transactions WHERE category_id = ? AND type = ?), updated_at = ? WHERE category_id = ? AND type = ?;`,
+            [amount, categoryId, type, currentTimestamp, categoryId, type]
         );
-    };
+    };    
 
     const deleteBudget = async (categoryId: number, type: 'monthly' | 'weekly') => {
         await db.runAsync(

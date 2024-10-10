@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Button, Alert } from 'react-native';
-import CustomSlider from './CustomSlider';
+import CustomSlider from '../ui/CustomSlider';
 import { TransactionsCategories } from '../../types/types';
 
 const colors = {

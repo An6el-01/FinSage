@@ -1,10 +1,10 @@
 import * as React from "react";
 import { Button, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import Card from "./ui/Card";
+import Card from "../ui/Card";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useSQLiteContext } from "expo-sqlite/next";
-import { TransactionsCategories, Transactions } from "../types/types";
+import { TransactionsCategories, Transactions } from "../../types/types";
 
 export default function AddTransaction({
   insertTransaction,

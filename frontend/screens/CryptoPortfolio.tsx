@@ -4,7 +4,7 @@ import { View, Text, Button, StyleSheet, TouchableOpacity } from 'react-native';
 import PortfolioValue from '../components/CryptoPortfolioScreen/PortfolioValue';
 import BuySellTransfer from '../components/CryptoPortfolioScreen/BuySellTransfer';
 import CryptoReports from '../components/CryptoPortfolioScreen/CryptoReports';
-import AIRecommendations from '../components/CryptoPortfolioScreen/AIRecommendations';
+import CryptoAIRecommendations from '../components/CryptoPortfolioScreen/CryptoAIRecommendations';
 import { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { useSQLiteContext } from 'expo-sqlite';
@@ -53,7 +53,6 @@ React.useLayoutEffect(() => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Crypto Portfolio</Text>
 
       {/* Display total portfolio value */}
       <PortfolioValue />
@@ -63,8 +62,8 @@ React.useLayoutEffect(() => {
 
       {/* Buttons for Crypto Reports and AI Recommendations */}
       <View style={styles.buttonContainer}>
-        <Button title="View Performance Report" onPress={() => {/* Navigate to CryptoReports screen */}} />
-        <Button title="View AI Recommendations" onPress={() => {/* Navigate to AIRecommendations screen */}} />
+        <Button title="View Performance Report" onPress={() => navigation.navigate('CryptoReports')} />
+        <Button title="View AI Recommendations" onPress={() => navigation.navigate('CryptoAIRecommendations')} />
       </View>
     </View>
   );

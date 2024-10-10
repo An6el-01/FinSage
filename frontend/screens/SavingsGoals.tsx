@@ -3,9 +3,9 @@ import { ScrollView, Text, View, StyleSheet, Button, ActivityIndicator, Touchabl
 import { SavingsGoals } from '../types/types';
 import { useGoalDataAccess } from "../database/GoalDataAccess";
 import Card from '../components/ui/Card';
-import AddGoal from '../components/AddGoal';
-import UpdateGoal from '../components/UpdateGoal';
-import DepositGoal from '../components/DepositGoal';
+import AddGoal from '../components/SavingsGoalsScreen/AddGoal';
+import UpdateGoal from '../components/SavingsGoalsScreen/UpdateGoal';
+import DepositGoal from '../components/SavingsGoalsScreen/DepositGoal';
 import { Ionicons } from '@expo/vector-icons';
 import ProgressBar from '../components/ui/ProgressBar'; 
 import { NavigationProp } from '@react-navigation/native';

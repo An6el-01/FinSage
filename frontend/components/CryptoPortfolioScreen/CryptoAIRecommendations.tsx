@@ -2,7 +2,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-const AIRecommendations = () => {
+const CryptoAIRecommendations = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>AI Recommendations</Text>
@@ -24,4 +24,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AIRecommendations;
+export default CryptoAIRecommendations;

@@ -1,8 +1,9 @@
 import * as React from 'react';
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useSQLiteContext } from "expo-sqlite/next";
 import TransactionsByMonth from '../components/AllTransactionsScreen/TransactionsByMonth';
 import IncomeExpenseGraph from '../components/AllTransactionsScreen/IncomeExpenseGraph';
+import TransactionList from '../components/TransactionsList'; // Import TransactionList component
 import { Transactions } from "../types/types";
 import { useFocusEffect } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
@@ -15,7 +16,6 @@ export default function AllTransactions() {
   const [transactions, setTransactions] = React.useState<Transactions[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-
 
   // Fetch transactions whenever the screen is focused
   useFocusEffect(
@@ -44,6 +44,19 @@ export default function AllTransactions() {
     setIsLoading(false);
   };
 
+  const deleteTransaction = async (id: number): Promise<void> => {
+    try {
+      await db.runAsync(
+        `DELETE FROM Transactions WHERE id = ?;`,
+        [id]
+      );
+      Alert.alert("Success", "Transaction deleted successfully.");
+      fetchTransactions(); // Refetch the transactions to update the list after deletion
+    } catch (error) {
+      Alert.alert("Error", "Failed to delete the transaction.");
+    }
+  };
+
   if (isLoading) {
     return (
       <View style={styles.container}>
@@ -55,9 +68,13 @@ export default function AllTransactions() {
   return (
     <ScrollView style={styles.container}>
       {/* Render the Transactions grouped by month */}
-      <IncomeExpenseGraph transactions={transactions} />
-      <TransactionsByMonth transactions={transactions} />
-
+      <IncomeExpenseGraph transactions={transactions} />      
+      {/* Render all transactions using TransactionList */}
+      <TransactionList
+        transactions={transactions}
+        categories={[]}  // Pass categories if you have them
+        deleteTransaction={deleteTransaction} // Handle transaction deletion
+      />
     </ScrollView>
   );
 }

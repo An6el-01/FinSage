@@ -16,9 +16,12 @@ import SavingsGoals from '../screens/SavingsGoals';
 import Statistics from '../screens/Statistics';
 import YearlySummary from '../screens/YearlySummary';
 import AllTransactions from '../screens/AllTransactions';
+import CryptoReports from '../components/CryptoPortfolioScreen/CryptoReports';
+import CryptoAIRecommendations from '../components/CryptoPortfolioScreen/CryptoAIRecommendations';
 
 const Tab = createBottomTabNavigator();
 const StatsStack = createNativeStackNavigator<RootStackParamList>();
+const CryptoStack = createNativeStackNavigator<RootStackParamList>();
 
 const colors = {
   primary: '#FCB900',
@@ -54,6 +57,23 @@ const StatisticsNavigator = () => {
     )
   }
 
+  const CryptoNavigator = () => {
+    return(
+      <CryptoStack.Navigator
+      screenOptions={{
+        headerShown: true, // Set to true to show the header
+        headerStyle: { backgroundColor: "#ffff" }, // Optional: Customize header style
+        headerTintColor: '#000000', // Optional: Customize header text color
+        headerTitleStyle: { fontWeight: 'normal' }, // Optional: Customize title style
+      }}
+      >
+        <CryptoStack.Screen name="CryptoPortfolio" component={CryptoPortfolioScreen} options={{ headerShown: false }}/>
+        <CryptoStack.Screen name="CryptoReports" component={CryptoReports} options= {{title: ""}}/>
+        <CryptoStack.Screen name="CryptoAIRecommendations" component={CryptoAIRecommendations} options ={{title: ""}}/>
+      </CryptoStack.Navigator>
+    )
+  }
+
 export default function BottomNavBar() {
   return (
     <Tab.Navigator
@@ -80,7 +100,7 @@ export default function BottomNavBar() {
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Home' }} />
       <Tab.Screen name="Transactions" component={TransactionsScreen} options={{ title: 'Transactions' }} />
       <Tab.Screen name="Budgets" component={BudgetsScreen} options={{ title: 'Budgets' }} />
-      <Tab.Screen name="Crypto Portfolio" component={CryptoPortfolioScreen} options={{ title: 'Crypto' }} />
+      <Tab.Screen name="Crypto Portfolio" component={CryptoNavigator} options={{ title: 'Crypto' }} />
 
       {/* Hide the tab button for the settings and savings goals */}
       <Tab.Screen

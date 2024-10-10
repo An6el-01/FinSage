@@ -1,12 +1,12 @@
 
 import { useSQLiteContext } from "expo-sqlite/next";
-import { Transaction } from "../types/types";
+import { Transactions} from "../types/types";
 
 // Fetch transaction data from SQLite database
 export const fetchTransactionData = async () => {
   const db = useSQLiteContext();
 
-  const transactions = await db.getAllAsync<Transaction>(`
+  const transactions = await db.getAllAsync<Transactions>(`
     SELECT 
       Transactions.amount,
       Transactions.date,
@@ -21,23 +21,23 @@ export const fetchTransactionData = async () => {
 };
 
 // Preprocess the fetched transaction data
-export const preprocessData = (transactions: Transaction[]) => {
+export const preprocessData = (transactions: Transactions[]) => {
     const groupedData = transactions.reduce((acc, transaction) => {
       // Ensure the date is valid and can be converted to a string format
       const date = new Date(transaction.date);
       const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
   
       // Only proceed if the category_name is defined
-      if (transaction.category_name) {
+      if (transaction.category_id) {
         if (!acc[monthYear]) {
           acc[monthYear] = {};
         }
   
-        if (!acc[monthYear][transaction.category_name]) {
-          acc[monthYear][transaction.category_name] = 0;
+        if (!acc[monthYear][transaction.category_id]) {
+          acc[monthYear][transaction.category_id] = 0;
         }
   
-        acc[monthYear][transaction.category_name] += transaction.amount;
+        acc[monthYear][transaction.category_id] += transaction.amount;
       }
   
       return acc;

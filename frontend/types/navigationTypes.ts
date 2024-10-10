@@ -12,4 +12,7 @@ export type RootStackParamList = {
     UserStack: undefined;
     Settings: undefined;
     AllTransactions: undefined;
+    CryptoPortfolio: undefined;
+    CryptoReports: undefined;
+    CryptoAIRecommendations: undefined;
 };

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { View, TextInput, Button, StyleSheet, Text, TouchableOpacity } from 'react-native';
-import { SavingsGoals } from '../types/types';
+import { SavingsGoals } from '../../types/types';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 const colors = {

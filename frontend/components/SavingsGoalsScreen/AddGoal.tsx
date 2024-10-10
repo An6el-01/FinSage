@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity } from 'react-native';
-import { SavingsGoals } from '../types/types';
+import { SavingsGoals } from '../../types/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
