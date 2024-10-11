@@ -1,18 +1,17 @@
 import * as React from "react";
 import { ScrollView, StyleSheet, Text, Platform, View, TouchableOpacity, Button } from "react-native";
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { TransactionsCategories, Transactions, TransactionsByMonth } from "../types/types";
+import { Transactions, TransactionsByMonth } from "../types/types";
 import { useSQLiteContext } from "expo-sqlite/next";
 import { NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../types/navigationTypes';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import { Ionicons } from '@expo/vector-icons'; // Import Ionicons
-import { checkAndCopyDatabase } from '../Utils/dbUtils';
+import { Ionicons } from '@expo/vector-icons';
 
 // Import the new components
 import FinancialOverview from "../components/HomeScreen/FinancialOverview";
-import AiInsights from "../components/HomeScreen/AiInsights";
+import AiInsights from "../components/HomeScreen/BudgetsHomeComponent";
 import RecentTransactions from "../components/HomeScreen/RecentTransactions";
 import SavingsGoalsProgress from "../components/HomeScreen/SavingsGoalProgress";
 
@@ -35,21 +34,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 10,
   },
-  card: {
-    padding: 20,
-    borderRadius: 8,
-    backgroundColor: colors.cardBackground,
-    marginBottom: 10,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    alignItems: 'center',
-  },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -67,76 +51,120 @@ const styles = StyleSheet.create({
 });
 
 export default function Home() {
-  const [categories, setCategories] = React.useState<TransactionsCategories[]>([]);
-  const [transactions, setTransactions] = React.useState<Transactions[]>([]);
-  const [transactionsByMonth, setTransactionsByMonth] = React.useState<TransactionsByMonth>({
-    totalExpenses: 0,
-    totalIncome: 0,
-  });
-  const [currentMonth, setCurrentMonth] = React.useState(new Date());
+  const [recentTransactions, setRecentTransactions] = React.useState<Transactions[]>([]);
+  const [yearlyTransactions, setYearlyTransaction] = React.useState<Transactions[]>([]);
+  const [totalIncome, setTotalIncome] = React.useState(0);
+  const [totalExpenses, setTotalExpenses] = React.useState(0);
+  const [netBalance, setNetBalance] = React.useState(0);
+  const [currencySymbol, setCurrencySymbol] = React.useState('$'); // Default to USD
+  const [incomeData, setIncomeData] = React.useState<number[]>([]);
+  const [expensesData, setExpensesData] = React.useState<number[]>([]);
 
   const db = useSQLiteContext();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   useFocusEffect(
     React.useCallback(() => {
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
       db.withTransactionAsync(async () => {
-        await getData();
+        await getRecentTransactionsData();
+        await getYearlyData(currentMonth, currentYear); // Pass month and year correctly here
       });
-    }, [db, currentMonth])
+    }, [db])
   );
 
-  React.useLayoutEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity style={styles.settingsIcon} onPress={() => navigation.navigate('Settings')}>
-          <Ionicons name="settings-outline" size={24} color="black" />
-          <Text style={styles.settingsIconName}>Settings</Text>
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation]);
+  React.useEffect(() => {
+    setCurrencySymbol('$');
+  });
 
-  async function getData() {
-    const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-    const endOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
-    endOfMonth.setMilliseconds(endOfMonth.getMilliseconds() - 1);
-
+  async function getRecentTransactionsData() {
+    // Fetch recent transactions for the current month
+    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const endOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
     const startOfMonthTimestamp = Math.floor(startOfMonth.getTime());
     const endOfMonthTimestamp = Math.floor(endOfMonth.getTime());
 
     const result = await db.getAllAsync<Transactions>(
-      `SELECT * FROM Transactions WHERE date >= ? AND date <= ? ORDER BY date DESC;`,
+      'SELECT * FROM Transactions WHERE date >= ? AND date <= ? ORDER BY date DESC;',
       [startOfMonthTimestamp, endOfMonthTimestamp]
     );
-    setTransactions(result);
-
-    const categoriesResult = await db.getAllAsync<TransactionsCategories>(
-      `SELECT * FROM Categories;`
-    );
-    setCategories(categoriesResult);
-
-    const transactionsByMonth = await db.getAllAsync<TransactionsByMonth>(
-      `
-      SELECT
-        COALESCE(SUM(CASE WHEN type = 'Expense' THEN amount ELSE 0 END), 0) AS totalExpenses,
-        COALESCE(SUM(CASE WHEN type = 'Income' THEN amount ELSE 0 END), 0) AS totalIncome
-      FROM Transactions
-      WHERE date >= ? AND date <= ?;
-    `,
-      [startOfMonthTimestamp, endOfMonthTimestamp]
-    );
-    setTransactionsByMonth(transactionsByMonth[0]);
+    setRecentTransactions(result);
   }
 
-  // Handle month navigation
-  const handlePreviousMonth = () => {
-    setCurrentMonth(prevMonth => new Date(prevMonth.getFullYear(), prevMonth.getMonth() - 1, 1));
+  const getYearlyData = async (month: number, year: number) => {
+    const startOfMonth = new Date(year, month, 1).getTime();
+    const endOfMonth = new Date(year, month + 1, 0).getTime();
+
+    const result = await db.getAllAsync<Transactions>(
+      'SELECT * FROM Transactions WHERE date >= ? AND date <= ? ORDER BY date DESC;',
+      [startOfMonth, endOfMonth]
+    );
+    setYearlyTransaction(result);
+
+    let totalIncome = 0;
+    let totalExpenses = 0;
+
+    const incomeData = Array(4).fill(0); // 3 data points for 15 days
+    const expensesData = Array(4).fill(0);
+
+    result.forEach(transaction => {
+      const transactionDate = new Date(transaction.date).getTime();
+      const intervalIndex = Math.floor((transactionDate - startOfMonth) / (15 * 24 * 60 * 60 * 1000)); // 15-day interval
+
+      if (transaction.type === 'Income') {
+        totalIncome += transaction.amount;
+        if (intervalIndex < 4) incomeData[intervalIndex] += transaction.amount;
+      } else if (transaction.type === 'Expense') {
+        totalExpenses += transaction.amount;
+        if (intervalIndex < 4) expensesData[intervalIndex] += transaction.amount;
+      }
+    });
+
+    setTotalIncome(totalIncome);
+    setTotalExpenses(totalExpenses);
+    setIncomeData(incomeData);
+    setExpensesData(expensesData);
   };
 
-  const handleNextMonth = () => {
-    setCurrentMonth(prevMonth => new Date(prevMonth.getFullYear(), prevMonth.getMonth() + 1, 1));
-  };
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      <View>
+        <Text style={styles.text}>Net Worth</Text>
+        <Text style={styles.text}>{netBalance}</Text>
+      </View>
+
+      {/* Financial Overview Component */}
+      <FinancialOverview
+        totalIncome={totalIncome}
+        totalExpenses={totalExpenses}
+        currencySymbol={currencySymbol}
+        incomeData={incomeData}     // Pass income data
+        expensesData={expensesData} // Pass expenses data
+        onMonthYearChange={getYearlyData}
+      />
+
+      {/* Recent Transactions Component */}
+      <RecentTransactions transactions={recentTransactions} />
+
+      {/* Savings Goals Progress Component */}
+      <SavingsGoalsProgress />
+
+      {/* Budgets Component */}
+      <AiInsights />
+
+      {/* Buttons for viewing all goals and reports */}
+      <View style={styles.buttonContainer}>
+        <Button title="View Reports" onPress={() => navigation.navigate('Statistics')} />
+      </View>
+
+      {/* Add a button to export the database */}
+      <View style={styles.buttonContainer}>
+        <Button title="Export Database" onPress={exportDatabase} />
+      </View>
+    </ScrollView>
+  );
+}
 
   // Handle database export
   async function exportDatabase() {
@@ -156,36 +184,3 @@ export default function Home() {
       console.log("Sharing is not available on this device");
     }
   }
-
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
-        {/* Add a button to export the database */}
-        <View style={styles.buttonContainer}>
-        <Button title="Export Database" onPress={exportDatabase} />
-        </View>
-      {/* Financial Overview Component */}
-      <FinancialOverview
-        totalIncome={transactionsByMonth.totalIncome}
-        totalExpenses={transactionsByMonth.totalExpenses}
-        savings={transactionsByMonth.totalIncome - transactionsByMonth.totalExpenses}
-      />
-
-      {/* AI Insights Component */}
-      <AiInsights />
-
-      {/* Recent Transactions Component */}
-      <RecentTransactions transactions={transactions} />
-
-      {/* Savings Goals Progress Component */}
-      <SavingsGoalsProgress />
-
-      {/* Buttons for viewing all goals and reports */}
-      <View style={styles.buttonContainer}>
-        <Button title="View Reports"  onPress={() => navigation.navigate('Statistics')}/> 
-      </View>
-
-    
-
-    </ScrollView>
-  );
-}
