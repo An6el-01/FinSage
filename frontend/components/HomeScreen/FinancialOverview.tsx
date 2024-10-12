@@ -60,16 +60,26 @@ const FinancialOverview: React.FC<FinancialOverviewProps> = ({
     onMonthYearChange(newMonth, newYear);
   };
 
-  // Get the number of days in the selected month
   const today = new Date().getDate();
+  const lastDayOfSelectedMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
 
-  // Generate dynamic X-axis labels: split into 4 even points, with today's date as the last point
-  const xAxisLabels = [
-    `${monthsAbrev[selectedMonth]} 1`,
-    `${monthsAbrev[selectedMonth]} ${Math.floor(today / 3)}`,
-    `${monthsAbrev[selectedMonth]} ${Math.floor((today / 3) * 2)}`,
-    `${monthsAbrev[selectedMonth]} ${today}` // Set today's date as the last X-axis label
-  ];
+  // Show all days for past months, but limit current month to 'today'
+  const daysToShow = (selectedMonth === new Date().getMonth() && selectedYear === new Date().getFullYear())
+    ? today
+    : lastDayOfSelectedMonth;
+
+  // X-Axis Labels filtered to show no more than 6 evenly spaced labels
+  const xAxisLabels = Array.from({ length: daysToShow }, (_, index) => `${monthsAbrev[selectedMonth]} ${index + 1}`);
+  const filteredXAxisLabels = xAxisLabels.filter((_, index) => index % Math.ceil(daysToShow / 6) === 0);
+
+  // Income Linear Projection: Spread total income evenly across the month
+  const incomeProjection = Array.from({ length: daysToShow }, (_, day) => (totalIncome / daysToShow) * (day + 1));
+
+  // Expenses reflect daily transaction values
+  const cumulativeExpenses = expensesData.slice(0, daysToShow).reduce((acc, curr, index) => {
+    acc.push((acc[index - 1] || 0) + curr);
+    return acc;
+  }, [] as number[]);
 
   return (
     <View style={styles.container}>
@@ -85,63 +95,71 @@ const FinancialOverview: React.FC<FinancialOverviewProps> = ({
       </View>
 
       {/* Display Income and Expense Overview with Pills */}
-      <View style={styles.row}>
-        <View style={[styles.pill, styles.incomePill]}>
-          <Text style={styles.pillText}>Income</Text>
+      <View style={styles.pillContainer}>
+        <View style={styles.pillSection}>
+          <View style={[styles.pill, styles.incomePill]}>
+            <Text style={styles.pillText}>Income</Text>
+          </View>
+          <Text style={styles.amountText}>{formatMoney(totalIncome)}</Text>
         </View>
-        <Text style={styles.text}>{formatMoney(totalIncome)}</Text>
-      </View>
 
-      <View style={styles.row}>
-        <View style={[styles.pill, styles.expensePill]}>
-          <Text style={styles.pillText}>Expenses</Text>
+        <View style={styles.pillSection}>
+          <View style={[styles.pill, styles.expensePill]}>
+            <Text style={styles.pillText}>Expenses</Text>
+          </View>
+          <Text style={styles.amountText}>{formatMoney(totalExpenses)}</Text>
         </View>
-        <Text style={styles.text}>{formatMoney(totalExpenses)}</Text>
       </View>
 
       {/* Line Chart */}
       <LineChart
         data={{
-          labels: xAxisLabels, // Display 4 points across the month with today as the rightmost point
+          labels: filteredXAxisLabels,
           datasets: [
             {
-              data: incomeData,
-              color: (opacity = 1) => `rgba(0, 200, 0, ${opacity})`, // Green for income
-              strokeWidth: 2,
+              data: incomeProjection, // Smooth projection for income
+              color: () => `rgba(40, 167, 69, 1)`,  // Brighter green, matches the pill
+              strokeWidth: 3,  // Slightly thicker line for clarity
             },
             {
-              data: expensesData,
-              color: (opacity = 1) => `rgba(255, 69, 58, ${opacity})`, // Red for expenses
-              strokeWidth: 2,
+              data: cumulativeExpenses,  // Reflect cumulative daily expenses
+              color: () => `rgba(220, 53, 69, 1)`,  // Brighter red, matches the pill
+              strokeWidth: 3,  // Consistent thickness
             },
           ],
         }}
-        width={Dimensions.get('window').width - 60} // Adjust the graph to fit the screen
-        height={240}
+        width={Dimensions.get('window').width - 60}
+        height={220}
         chartConfig={{
-          backgroundColor: '#f9f9f9',
-          backgroundGradientFrom: '#f9f9f9',
-          backgroundGradientTo: '#f9f9f9',
+          backgroundColor: '#fff',
+          backgroundGradientFrom: '#f5f5f5',
+          backgroundGradientTo: '#f5f5f5',
           decimalPlaces: 2,
-          color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-          labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-          style: {
-            borderRadius: 16,
+          color: () => `rgba(0, 0, 0, 0.6)`,  // Soft black for axes
+          labelColor: () => `rgba(0, 0, 0, 0.6)`,  // Muted labels
+          propsForBackgroundLines: {
+            strokeDasharray: '0',  // Subtle grid
+            stroke: '#e0e0e0',
           },
           propsForDots: {
-            r: '5',
-            strokeWidth: '2',
-            stroke: '#ffa726',
+            r: '4',
+            strokeWidth: '0',
+            fill: '#fff',  // White dots for interactive feel
           },
         }}
-        bezier
         style={{
           marginVertical: 10,
           borderRadius: 16,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 3 },
+          shadowOpacity: 0.2,
+          shadowRadius: 4,
         }}
-        withInnerLines={false} // Remove inner grid lines
-        fromZero={true} // Start graph from zero
-        segments={4} // Control the number of Y-axis segments
+        bezier
+        withDots={false}  // Removed unnecessary dots
+        withInnerLines={false}  // Cleaner chart look
+        fromZero={true}
+        segments={6}
       />
     </View>
   );
@@ -157,7 +175,24 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
-    elevation: 5,
+    elevation: 6,  // Slightly more elevation for premium depth
+  },
+  pill: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 30,  // More rounded corners
+    marginBottom: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 4,
+    backgroundColor: 'linear-gradient(90deg, #28a745, #34ce57)',  // Gradient for a premium look
+  },
+  pillText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 16,  // Slightly larger font for emphasis
   },
   monthYearContainer: {
     flexDirection: 'row',
@@ -173,36 +208,24 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginHorizontal: 15,
   },
-  row: {
+  pillContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
+    justifyContent: 'space-around',
+    marginBottom: 10,
   },
-  pill: {
-    paddingVertical: 6,
-    paddingHorizontal: 18,
-    borderRadius: 25,
-    marginRight: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 3,
+  pillSection: {
+    alignItems: 'center',  // Center the text and pill vertically
   },
   incomePill: {
-    backgroundColor: '#28a745',
+    backgroundColor: '#28a745',  // Green matching the line chart
   },
   expensePill: {
-    backgroundColor: '#dc3545',
+    backgroundColor: '#dc3545',  // Red matching the line chart
   },
-  pillText: {
-    color: 'white',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  text: {
+  amountText: {
     fontSize: 16,
     fontWeight: '500',
+    color: '#000',
   },
 });
 

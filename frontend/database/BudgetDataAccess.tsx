@@ -1,5 +1,5 @@
 import { useSQLiteContext } from "expo-sqlite";
-import { TransactionsCategories, Budgets, Transactions, SavingsGoals } from "../../types/types";
+import { TransactionsCategories, Budgets, Transactions, SavingsGoals } from "../types/types";
 
 export const useGoalDataAccess = () => {
     const db = useSQLiteContext();
@@ -44,6 +44,12 @@ export const useGoalDataAccess = () => {
         );
         return results;
     };
+    const updateBudgetFavorite = async (id: number, favorite: boolean) => {
+        return await db.runAsync(
+          'UPDATE Budgets SET favorite = ? WHERE id = ?',
+          [favorite ? 1 : 0, id]
+        );
+      };
       
     return {
         getCategories,
@@ -51,6 +57,7 @@ export const useGoalDataAccess = () => {
         getBudgets,
         deleteBudget,
         updateBudget,
-        getTransactionsForCategory
+        getTransactionsForCategory,
+        updateBudgetFavorite,
     };
 };

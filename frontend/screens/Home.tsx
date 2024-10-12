@@ -1,7 +1,7 @@
 import * as React from "react";
-import { ScrollView, StyleSheet, Text, Platform, View, TouchableOpacity, Button } from "react-native";
+import { ScrollView, StyleSheet, Text, View, TouchableOpacity, Button } from "react-native";
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { Transactions, TransactionsByMonth } from "../types/types";
+import { Transactions, SavingsGoals, Budgets, TransactionsCategories } from "../types/types";
 import { useSQLiteContext } from "expo-sqlite/next";
 import { NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../types/navigationTypes';
@@ -13,7 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 import FinancialOverview from "../components/HomeScreen/FinancialOverview";
 import AiInsights from "../components/HomeScreen/BudgetsHomeComponent";
 import RecentTransactions from "../components/HomeScreen/RecentTransactions";
-import SavingsGoalsProgress from "../components/HomeScreen/SavingsGoalProgress";
+import SavingsGoalsProgress from "../components/HomeScreen/SavingsGoalsProgress";
+import BudgetsHomeComponent from "../components/HomeScreen/BudgetsHomeComponent";
 
 const colors = {
   primary: '#FCB900',
@@ -27,27 +28,35 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 15,
-    backgroundColor: colors.background,
+    backgroundColor: '#f0f0f5',  // Slightly muted background color
   },
-  text: {
-    fontSize: 18,
-    color: colors.text,
-    marginBottom: 10,
+  netWorthContainer: {
+    marginBottom: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  netWorthTitle: {
+    fontSize: 28,  // Larger font for a more premium feel
+    fontWeight: 'bold',
+    color: '#212121',
+    marginBottom: 5,
+  },
+  netWorthAmount: {
+    fontSize: 40,  // Larger and bolder for impact
+    fontWeight: 'bold',
+    color: '#28a745',
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 4,  // Slightly increased shadow for depth
+  },
+  negativeNetWorthAmount: {
+    color: '#dc3545',
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 15,
   },
-  settingsIcon: {
-    alignItems: 'center',
-    marginRight: 13,
-  },
-  settingsIconName: {
-    marginTop: 3,
-    fontSize: 12,
-    color: '#212121',
-  }
 });
 
 export default function Home() {
@@ -59,6 +68,10 @@ export default function Home() {
   const [currencySymbol, setCurrencySymbol] = React.useState('$'); // Default to USD
   const [incomeData, setIncomeData] = React.useState<number[]>([]);
   const [expensesData, setExpensesData] = React.useState<number[]>([]);
+  const [goals, setGoals] = React.useState<SavingsGoals[]>([]); // Add state for goals
+  const [budgets, setBudgets] = React.useState<Budgets[]>([]); // Add state for goals
+  const [categories, setCategories] = React.useState<TransactionsCategories[]>([]);
+
 
   const db = useSQLiteContext();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -70,6 +83,10 @@ export default function Home() {
       db.withTransactionAsync(async () => {
         await getRecentTransactionsData();
         await getYearlyData(currentMonth, currentYear); // Pass month and year correctly here
+        await calculateNetWorth(); // Calculate net worth across all transactions
+        await loadGoals();
+        await loadBudgets();
+        await loadCategories();
       });
     }, [db])
   );
@@ -77,6 +94,8 @@ export default function Home() {
   React.useEffect(() => {
     setCurrencySymbol('$');
   });
+
+  
 
   async function getRecentTransactionsData() {
     // Fetch recent transactions for the current month
@@ -95,43 +114,106 @@ export default function Home() {
   const getYearlyData = async (month: number, year: number) => {
     const startOfMonth = new Date(year, month, 1).getTime();
     const endOfMonth = new Date(year, month + 1, 0).getTime();
-
+    
     const result = await db.getAllAsync<Transactions>(
       'SELECT * FROM Transactions WHERE date >= ? AND date <= ? ORDER BY date DESC;',
       [startOfMonth, endOfMonth]
     );
+    
     setYearlyTransaction(result);
-
+  
     let totalIncome = 0;
     let totalExpenses = 0;
-
-    const incomeData = Array(4).fill(0); // 3 data points for 15 days
-    const expensesData = Array(4).fill(0);
-
+  
+    // Adjust the data arrays to accommodate each day in the month
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const incomeData = Array(daysInMonth).fill(0);
+    const expensesData = Array(daysInMonth).fill(0);
+  
     result.forEach(transaction => {
-      const transactionDate = new Date(transaction.date).getTime();
-      const intervalIndex = Math.floor((transactionDate - startOfMonth) / (15 * 24 * 60 * 60 * 1000)); // 15-day interval
-
+      const transactionDate = new Date(transaction.date).getDate() - 1; // Day of the month
+  
       if (transaction.type === 'Income') {
         totalIncome += transaction.amount;
-        if (intervalIndex < 4) incomeData[intervalIndex] += transaction.amount;
+        incomeData[transactionDate] += transaction.amount; // Add to corresponding day
       } else if (transaction.type === 'Expense') {
         totalExpenses += transaction.amount;
-        if (intervalIndex < 4) expensesData[intervalIndex] += transaction.amount;
+        expensesData[transactionDate] += transaction.amount; // Add to corresponding day
       }
     });
-
+  
     setTotalIncome(totalIncome);
     setTotalExpenses(totalExpenses);
     setIncomeData(incomeData);
     setExpensesData(expensesData);
   };
 
+  const calculateNetWorth = async () => {
+    const result = await db.getAllAsync<Transactions>(
+      'SELECT * FROM Transactions ORDER BY date DESC;'  // Fetch all transactions
+    );
+
+    let totalIncome = 0;
+    let totalExpenses = 0;
+
+    result.forEach(transaction => {
+      if (transaction.type === 'Income') {
+        totalIncome += transaction.amount;
+      } else if (transaction.type === 'Expense') {
+        totalExpenses += transaction.amount;
+      }
+    });
+
+    const netWorth = totalIncome - totalExpenses;
+    setNetBalance(netWorth);  // Update net balance state
+  };
+
+  const loadGoals = async () => {
+    const result = await db.getAllAsync<SavingsGoals>(
+      'SELECT * FROM SavingsGoals WHERE favorite = ?;',
+      [1]
+    );
+    setGoals(result);
+  };
+
+  const mappedGoals = goals.map(goal => ({
+    name: goal.name,
+    progress: goal.progress,
+    target: goal.amount,
+    targetDate: new Date(goal.target_date).toISOString(), // Convert target_date to string
+  }));
+  
+  const loadBudgets = async () => {
+    const result = await db.getAllAsync<Budgets>(
+      'SELECT * FROM Budgets WHERE favorite = ?;',
+      [1]
+    );
+    setBudgets(result);
+  };
+
+  const mappedBudgets = budgets.map(budget => ({
+    category: budget.category_id,
+    spent: budget.spent,
+    amount: budget.amount,
+  }));
+
+  const loadCategories = async () => {
+    const result = await db.getAllAsync<TransactionsCategories>('SELECT * FROM TransactionsCategories;');
+    setCategories(result);
+  };
+  
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View>
-        <Text style={styles.text}>Net Worth</Text>
-        <Text style={styles.text}>{netBalance}</Text>
+      {/* Net Worth Display */}
+      <View style={styles.netWorthContainer}>
+        <Text style={styles.netWorthTitle}>Net Worth</Text>
+        <Text style={[
+          styles.netWorthAmount, 
+          netBalance < 0 && styles.negativeNetWorthAmount  // Change color if negative
+        ]}>
+          {currencySymbol}{netBalance.toFixed(2)}
+        </Text>
       </View>
 
       {/* Financial Overview Component */}
@@ -148,10 +230,10 @@ export default function Home() {
       <RecentTransactions transactions={recentTransactions} />
 
       {/* Savings Goals Progress Component */}
-      <SavingsGoalsProgress />
+      <SavingsGoalsProgress goals={mappedGoals} />
 
       {/* Budgets Component */}
-      <AiInsights />
+      <BudgetsHomeComponent budgets={mappedBudgets} categories={categories}/>
 
       {/* Buttons for viewing all goals and reports */}
       <View style={styles.buttonContainer}>

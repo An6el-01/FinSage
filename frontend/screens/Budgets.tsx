@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { ScrollView, Text, View, StyleSheet, Button, ActivityIndicator, TouchableOpacity, Alert, Modal } from 'react-native';
 import { TransactionsCategories, Budgets } from '../types/types';
-import { useGoalDataAccess } from '../components/BudgetsScreen/BudgetDataAccess';
+import { useGoalDataAccess } from '../database/BudgetDataAccess';
 import Card from '../components/ui/Card';
 import ProgressBar from '../components/ui/ProgressBar';
 import AddBudget from '../components/BudgetsScreen/AddBudget';
@@ -11,6 +11,10 @@ import SimpleLineIcons from '@expo/vector-icons/SimpleLineIcons';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import SavingsRecommendations from '../components/SavingsGoalsScreen/AISavingsRecommendations';  // Import the new component
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { RootStackParamList } from '../types/navigationTypes';
+
+
 
 const colors = {
   primary: "#FCB900",
@@ -124,10 +128,24 @@ const styles = StyleSheet.create({
     top: 10,
     right: 10,
   },
+  settingsIcon: {
+    alignItems: 'center',
+    marginRight:  13,
+  },
+  settingsIconName: {
+    marginTop: 3,
+    fontSize: 12,
+    color: '#212121',
+  },
+  favoriteIcon: {
+    position: 'absolute',
+    top: 5,
+    right: 10,
+  },
 });
 
 const Budgeting = () => {
-  const { getCategories, insertBudget, getBudgets, deleteBudget, updateBudget, getTransactionsForCategory } = useGoalDataAccess();
+  const { getCategories, insertBudget, getBudgets, deleteBudget, updateBudget, getTransactionsForCategory, updateBudgetFavorite } = useGoalDataAccess();
   const [categories, setCategories] = React.useState<TransactionsCategories[]>([]);
   const [budgets, setBudgets] = React.useState<Budgets[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);
@@ -136,6 +154,8 @@ const Budgeting = () => {
   const [editCategory, setEditCategory] = React.useState<string>('');
   const [initialAmount, setInitialAmount] = React.useState<string>('');
   const [showRecommendations, setShowRecommendations] = React.useState<boolean>(false);  // State for showing recommendations
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
 
   React.useEffect(() => {
     const loadInitialData = async () => {
@@ -173,6 +193,17 @@ const Budgeting = () => {
 
     loadInitialData();
   }, []);
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity style={styles.settingsIcon} onPress={() => navigation.navigate('Settings')}>
+          <Ionicons name="settings-outline" size={24} color="black" />
+          <Text style={styles.settingsIconName}>Settings</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
 
   const handleAddBudget = async (categoryName: string, type: 'monthly' | 'weekly', amount: number) => {
     const category = categories.find(cat => cat.name === categoryName);
@@ -259,6 +290,13 @@ const Budgeting = () => {
     );
   }
 
+  const handleToggleFavorite = async (budget: Budgets) => {
+    const updatedFavorite = !budget.favorite;
+    await updateBudgetFavorite(budget.id, updatedFavorite); // Toggle favorite in the database
+    loadBudgets(); // Reload the goals after updating
+  };
+
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -293,6 +331,16 @@ const Budgeting = () => {
                   <Text style={styles.budgetAmount}>${budget.amount}</Text>
                 </View>
                 <View style={styles.iconContainer}>
+                  <TouchableOpacity
+                    style={styles.iconWrapper}
+                    onPress={() => handleToggleFavorite(budget)}
+                  >
+                    <Ionicons
+                      name={budget.favorite ? "star" : "star-outline"}
+                      size={24}
+                      color={budget.favorite ? colors.primary : '#888'}
+                    />
+                  </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.iconWrapper}
                     onPress={() => {

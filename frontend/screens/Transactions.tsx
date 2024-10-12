@@ -4,7 +4,7 @@ import Card from '../components/ui/Card';
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import { useSQLiteContext } from 'expo-sqlite/next';
 import { TransactionsCategories, Transactions } from '../types/types';
-import { useGoalDataAccess } from '../components/BudgetsScreen/BudgetDataAccess';
+import { useGoalDataAccess } from '../database/BudgetDataAccess';
 import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';

@@ -1,10 +1,7 @@
-// frontend/screens/CryptoPortfolio.tsx
 import React from 'react';
 import { View, Text, Button, StyleSheet, TouchableOpacity } from 'react-native';
 import PortfolioValue from '../components/CryptoPortfolioScreen/PortfolioValue';
 import BuySellTransfer from '../components/CryptoPortfolioScreen/BuySellTransfer';
-import CryptoReports from '../components/CryptoPortfolioScreen/CryptoReports';
-import CryptoAIRecommendations from '../components/CryptoPortfolioScreen/CryptoAIRecommendations';
 import { NavigationProp } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
 import { useSQLiteContext } from 'expo-sqlite';

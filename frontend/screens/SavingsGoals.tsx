@@ -24,9 +24,59 @@ const colors = {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    marginBottom: 20,
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 6,
+  },
+  header: {
+    fontSize: 20,  // Larger font for header
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  goalCard: {
+    marginBottom: 10,
     padding: 15,
-    backgroundColor: colors.background,
+    borderRadius: 10,
+    backgroundColor: '#f5f5f5',  // Softer background color for the cards
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  goalName: {
+    fontSize: 18,  // Larger font for goal names
+    fontWeight: 'bold',
+  },
+  goalProgress: {
+    fontSize: 16,
+    color: '#888',
+  },
+  viewAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+    paddingVertical: 12,
+    backgroundColor: 'linear-gradient(90deg, #28a745, #34ce57)',  // Gradient for a premium look
+    borderRadius: 30,  // Rounded for a more modern button look
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 4,
+  },
+  viewAllButtonText: {
+    marginLeft: 5,
+    color: '#fff',
+    fontSize: 16,  // Larger font size for CTA
+    fontWeight: 'bold',
   },
   text: {
     fontSize: 18,
@@ -52,21 +102,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  goalName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 5,
-  },
   goalAmount: {
     fontSize: 16,
     color: colors.text,
     marginBottom: 5,
-  },
-  goalProgress: {
-    fontSize: 16,
-    color: colors.text,
-    marginBottom: 15,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -95,7 +134,12 @@ const styles = StyleSheet.create({
     marginTop: 3,
     fontSize: 12,
     color: '#212121',
-  }
+  },
+  favoriteIcon: {
+    position: 'absolute',
+    top: 5,
+    right: 10,
+  },
 });
 
 const formatCurrency = (value: number) => {
@@ -103,14 +147,13 @@ const formatCurrency = (value: number) => {
 };
 
 export default function FinancialGoals() {
-  const { getGoals, insertGoal, updateGoal, deleteGoal } = useGoalDataAccess();
+  const { getGoals, insertGoal, updateGoal, deleteGoal, updateGoalFavorite } = useGoalDataAccess(); // Make sure updateGoalFavorite is in the data access layer
   const [goals, setGoals] = React.useState<SavingsGoals[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [showAddGoal, setShowAddGoal] = React.useState<boolean>(false);
   const [showUpdateGoal, setShowUpdateGoal] = React.useState<SavingsGoals | null>(null);
   const [showDepositGoal, setShowDepositGoal] = React.useState<SavingsGoals | null>(null);
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-
 
   React.useEffect(() => {
     loadGoals();
@@ -132,6 +175,12 @@ export default function FinancialGoals() {
     const fetchedGoals = await getGoals();
     setGoals(fetchedGoals);
     setLoading(false);
+  };
+
+  const handleToggleFavorite = async (goal: SavingsGoals) => {
+    const updatedFavorite = !goal.favorite;
+    await updateGoalFavorite(goal.id, updatedFavorite); // Toggle favorite in the database
+    loadGoals(); // Reload the goals after updating
   };
 
   const handleDeleteGoal = async (id: number) => {
@@ -175,6 +224,16 @@ export default function FinancialGoals() {
             <>
               <View style={styles.goalNameContainer}>
                 <Text style={styles.goalName}>{goal.name}</Text>
+                <TouchableOpacity
+                  style={styles.favoriteIcon}
+                  onPress={() => handleToggleFavorite(goal)}
+                >
+                  <Ionicons
+                    name={goal.favorite ? "star" : "star-outline"}
+                    size={24}
+                    color={goal.favorite ? colors.primary : '#888'}
+                  />
+                </TouchableOpacity>
               </View>
               <Text style={styles.goalAmount}>Goal: {formatCurrency(goal.amount)}</Text>
               <Text style={styles.goalProgress}>Progress: {formatCurrency(goal.progress)}</Text>

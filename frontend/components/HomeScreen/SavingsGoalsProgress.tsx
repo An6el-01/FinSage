@@ -9,47 +9,43 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 
 // Define the interface for props
-interface BudgetProgressProps {
-  budgets: { category: number; spent: number; amount: number;}[];  // Adjust the type if needed
-  categories: {id: number; name: string;}[];
+interface SavingsGoalsProgressProps {
+  goals: { name: string; progress: number; target: number; targetDate: string }[];  // Adjust the type if needed
 }
 
-const BudgetsHomeComponent: React.FC<BudgetProgressProps> = ({ budgets, categories }) => {
+const SavingsGoalsProgress: React.FC<SavingsGoalsProgressProps> = ({ goals }) => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const formatCurrency = (value: number) => `$${value.toFixed(2)}`;
 
-  const getCategoryName = (categoryId: number) => {
-    const category = categories.find(category => category.id === categoryId);
-    return category ? category.name : 'Unknown Category';
-  }
-
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Budgets</Text>
+      <Text style={styles.header}>Savings Goals</Text>
 
-      {budgets.length === 0 ? (
-        <Text style={styles.noBudgetsText}>No favorited budgets to display</Text>
+      {goals.length === 0 ? (
+        <Text style={styles.noGoalsText}>No favorited goals to display</Text>
       ) : (
-        budgets.map((budget, index) => {
-          const progressPercentage = budget.spent / budget.amount;
+        goals.map((goal, index) => {
+          const progressPercentage = goal.progress / goal.target;
+          const targetDate = new Date(goal.targetDate).toLocaleDateString();
 
           return (
-            <View key={index} style={styles.budgetCard}>
-              <View style={styles.budgetRow}>
-                <Text style={styles.budgetName}>{getCategoryName(budget.category)}</Text>
-                <Text style={styles.budgetSpent}>
-                  {formatCurrency(budget.spent)} / {formatCurrency(budget.amount)}
+            <View key={index} style={styles.goalCard}>
+              <View style={styles.goalRow}>
+                <Text style={styles.goalName}>{goal.name}</Text>
+                <Text style={styles.goalProgress}>
+                  {formatCurrency(goal.progress)} / {formatCurrency(goal.target)}
                 </Text>
               </View>
               <ProgressBar progress={progressPercentage} />
+              <Text style={styles.goalTargetDate}>Target Date: {targetDate}</Text>
             </View>
           );
         })
       )}
 
       {/* View All Goals Button - Displayed only once */}
-      <TouchableOpacity onPress={() => navigation.navigate('Budgets')}>
+      <TouchableOpacity onPress={() => navigation.navigate('SavingsGoals')}>
         <LinearGradient
           colors={['#007BFF', '#00BFFF']}
           start={{ x: 0, y: 0 }}
@@ -57,7 +53,7 @@ const BudgetsHomeComponent: React.FC<BudgetProgressProps> = ({ budgets, categori
           style={styles.viewAllButton}
         >
           <Ionicons name="arrow-forward-circle" size={20} color="white" />
-          <Text style={styles.viewAllButtonText}>View All Budgets</Text>
+          <Text style={styles.viewAllButtonText}>View All Savings Goals</Text>
         </LinearGradient>
       </TouchableOpacity>
     </View>
@@ -81,7 +77,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
   },
-  budgetCard: {
+  goalCard: {
     marginBottom: 10,
     padding: 10,
     borderRadius: 8,
@@ -91,21 +87,26 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
   },
-  budgetRow: {
+  goalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
   },
-  budgetName: {
+  goalName: {
     fontSize: 16,
     fontWeight: 'bold',
   },
-  budgetSpent: {
+  goalProgress: {
     fontSize: 14,
     color: '#888',
   },
-  noBudgetsText: {
+  goalTargetDate: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 5,
+  },
+  noGoalsText: {
     fontSize: 14,
     color: '#888',
     marginBottom: 10,
@@ -128,4 +129,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BudgetsHomeComponent;
+export default SavingsGoalsProgress;

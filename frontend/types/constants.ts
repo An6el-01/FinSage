@@ -59,7 +59,7 @@ export const categoryEmojies: { [key: string]: string } = {
   "Salary & Wages": "💰",
   "Freelancing & Contract Work": "👨‍💻",
   "Business Profits": "📈",
-  "Gifts Received": "🎁",
+  "Gifts Recieved": "🎁",
   "Investments & Dividends": "📊",
   "Rental Income": "🏠",
   "Bonuses & Commissions": "🎉",

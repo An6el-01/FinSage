@@ -32,6 +32,7 @@ export interface Transactions {
     amount: number;
     progress: number;
     target_date: number;
+    favorite: boolean;
   };
   
   export interface Budgets {
@@ -43,6 +44,7 @@ export interface Transactions {
     type: "monthly" | "weekly";
     created_at: number;
     updated_at: number;
+    favorite: boolean;
   }
 
   export interface CryptoPortfolios {

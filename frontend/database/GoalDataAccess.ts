@@ -37,6 +37,13 @@ const deleteGoal = async (id: number) => {
       [amount, SavingsGoals.id]
     );
   };
+  const updateGoalFavorite = async (id: number, favorite: boolean) => {
+    return await db.runAsync(
+      'UPDATE SavingsGoals SET favorite = ? WHERE id = ?',
+      [favorite ? 1 : 0, id]
+    );
+  };
+  
 
   return {
     getGoals,
@@ -44,5 +51,6 @@ const deleteGoal = async (id: number) => {
     updateGoal,
     deleteGoal,
     depositGoal,
+    updateGoalFavorite,
   };
 };
