@@ -66,16 +66,26 @@ export default function AllTransactions() {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Render the Transactions grouped by month */}
-      <IncomeExpenseGraph transactions={transactions} />      
-      {/* Render all transactions using TransactionList */}
-      <TransactionList
-        transactions={transactions}
-        categories={[]}  // Pass categories if you have them
-        deleteTransaction={deleteTransaction} // Handle transaction deletion
-      />
-    </ScrollView>
+    <View style={{ flex: 1 }}>
+      <ScrollView style={styles.container}>
+        {/* Render the Transactions grouped by month */}
+        <IncomeExpenseGraph transactions={transactions} />      
+        {/* Render all transactions using TransactionList */}
+        <TransactionList
+          transactions={transactions}
+          categories={[]}  // Pass categories if you have them
+          deleteTransaction={deleteTransaction} // Handle transaction deletion
+        />
+      </ScrollView>
+      
+      {/* Add Circular Plus Button */}
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => navigation.navigate('NewTransactionInput')} // Navigate to new input screen
+      >
+        <Ionicons name="add" size={32} color="white" />
+      </TouchableOpacity>
+    </View>
   );
 }
 
@@ -93,5 +103,16 @@ const styles = StyleSheet.create({
     marginTop: 3,
     fontSize: 12,
     color: '#212121',
+  },
+  addButton: {
+    position: 'absolute',
+    right: 20,
+    bottom: 30,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#28a745',
+    justifyContent: 'center',
+    alignItems: 'center',
   }
 });

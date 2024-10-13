@@ -74,7 +74,7 @@ const App = () => {
 
       try {
         userToken = await AsyncStorage.getItem('userToken');
-        await checkAndCopyDatabase();
+        //await checkAndCopyDatabase();
       } catch (e) {
         console.error(e);
       }

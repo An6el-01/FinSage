@@ -9,6 +9,8 @@ import { RootStackParamList } from '../types/navigationTypes';
 // Screens
 import HomeScreen from '../screens/Home';
 import TransactionsScreen from '../screens/Transactions';
+import NewTransactionInput from '../components/AllTransactionsScreen/NewTransactionInput';
+import TransactionDetails from '../components/AllTransactionsScreen/TransactionDetails';
 import BudgetsScreen from '../screens/Budgets';
 import CryptoPortfolioScreen from '../screens/CryptoPortfolio';
 import Settings from '../screens/Settings';
@@ -22,6 +24,7 @@ import CryptoAIRecommendations from '../components/CryptoPortfolioScreen/CryptoA
 const Tab = createBottomTabNavigator();
 const StatsStack = createNativeStackNavigator<RootStackParamList>();
 const CryptoStack = createNativeStackNavigator<RootStackParamList>();
+const TransactionStack = createNativeStackNavigator<RootStackParamList>();
 
 const colors = {
   primary: '#FCB900',
@@ -74,6 +77,25 @@ const StatisticsNavigator = () => {
     )
   }
 
+  const TransactionNavigator = () => {
+    return(
+      <TransactionStack.Navigator
+      screenOptions={{
+        headerShown: true, // Set to true to show the header
+        headerStyle: { backgroundColor: "#ffff" }, // Optional: Customize header style
+        headerTintColor: '#000000', // Optional: Customize header text color
+        headerTitleStyle: { fontWeight: 'normal' }, // Optional: Customize title style
+      }}
+      >
+        <TransactionStack.Screen name="AllTransactions" component={AllTransactions} options={{ headerShown: false}}/>
+        <TransactionStack.Screen name="NewTransactionInput" component={NewTransactionInput} options= {{title: ""}}/>
+        <TransactionStack.Screen name="TransactionDetails" component={TransactionDetails} options={{ title: "" }} /> 
+      </TransactionStack.Navigator>
+    )
+  }
+
+
+
 export default function BottomNavBar() {
   return (
     <Tab.Navigator
@@ -98,7 +120,7 @@ export default function BottomNavBar() {
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Home' }} />
-      <Tab.Screen name="Transactions" component={TransactionsScreen} options={{ title: 'Transactions' }} />
+      <Tab.Screen name="Transactions" component={TransactionNavigator} options={{ title: 'Transactions' }} />
       <Tab.Screen name="Budgets" component={BudgetsScreen} options={{ title: 'Budgets' }} />
       <Tab.Screen name="Crypto Portfolio" component={CryptoNavigator} options={{ title: 'Crypto' }} />
 

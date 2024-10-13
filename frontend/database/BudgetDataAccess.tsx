@@ -1,5 +1,6 @@
 import { useSQLiteContext } from "expo-sqlite";
 import { TransactionsCategories, Budgets, Transactions, SavingsGoals } from "../types/types";
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth} from 'date-fns';
 
 export const useGoalDataAccess = () => {
     const db = useSQLiteContext();
@@ -50,6 +51,24 @@ export const useGoalDataAccess = () => {
           [favorite ? 1 : 0, id]
         );
       };
+
+      const refreshBudget = async (categoryId: number, budgetType: 'monthly' | 'weekly') => {
+        try {
+            const startDate = budgetType === 'weekly' ? startOfWeek(new Date()) : startOfMonth(new Date());
+            const endDate = budgetType === 'weekly' ? endOfWeek(new Date()) : endOfMonth(new Date());
+            const transactions = await getTransactionsForCategory(categoryId, startDate, endDate);
+            
+            // Calculate the total amount spent in the category for the specified time period
+            const totalSpent = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+            
+            // Update the budget with the new spent value
+            await updateBudget(categoryId, totalSpent, budgetType);
+            
+            console.log(`Budget refreshed for category ${categoryId}, total spent: ${totalSpent}`);
+        } catch (error) {
+            console.error(`Failed to refresh budget for category ${categoryId}:`, error);
+        }
+    };
       
     return {
         getCategories,
@@ -59,5 +78,6 @@ export const useGoalDataAccess = () => {
         updateBudget,
         getTransactionsForCategory,
         updateBudgetFavorite,
+        refreshBudget
     };
 };
