@@ -57,6 +57,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 15,
   },
+  settingsIcon: {
+    alignItems: 'center',
+    marginRight:  13,
+  },
+  settingsIconName: {
+    marginTop: 3,
+    fontSize: 12,
+    color: '#212121',
+  }
 });
 
 export default function Home() {
@@ -94,6 +103,17 @@ export default function Home() {
   React.useEffect(() => {
     setCurrencySymbol('$');
   });
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity style={styles.settingsIcon} onPress={() => navigation.navigate('Settings')}>
+          <Ionicons name="settings-outline" size={24} color="black" />
+          <Text style={styles.settingsIconName}>Settings</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
 
   
 

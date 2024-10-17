@@ -2,10 +2,11 @@ import * as React from 'react';
 import { ScrollView, Text, View, StyleSheet, TouchableOpacity, Button } from 'react-native';
 import { TransactionsCategories, Transactions } from "../types/types";
 import { useSQLiteContext } from 'expo-sqlite/next';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, NavigationProp } from '@react-navigation/native';
 import { categoryColors, categoryEmojies } from '../types/constants'; // Import category colors and emojis
 import PieChart from 'react-native-pie-chart';
 import Card from "../components/ui/Card";
+import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../types/navigationTypes';
 import { fetchTransactionData, preprocessData } from '../Utils/dataProcessing';
 
@@ -107,6 +108,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
   },
+  settingsIcon: {
+    alignItems: 'center',
+    marginRight:  13,
+  },
+  settingsIconName: {
+    marginTop: 3,
+    fontSize: 12,
+    color: '#212121',
+  }
 });
 
 type GroupedTransactions = {
@@ -122,7 +132,7 @@ export default function Statistics() {
   const [currentMonth, setCurrentMonth] = React.useState(new Date());
   const [categories, setCategories] = React.useState<TransactionsCategories[]>([]);
   const db = useSQLiteContext();
-  const navigation = useNavigation<any>(); 
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>(); 
 
   const fetchData = async () => {
     const startOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
@@ -153,6 +163,17 @@ export default function Statistics() {
       });
     }, [db, currentMonth])
   );
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity style={styles.settingsIcon} onPress={() => navigation.navigate('Settings')}>
+          <Ionicons name="settings-outline" size={24} color="black" />
+          <Text style={styles.settingsIconName}>Settings</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
 
   const filteredData = filter
     ? data.filter(transaction => transaction.type === filter)

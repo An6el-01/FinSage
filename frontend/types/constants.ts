@@ -3,7 +3,7 @@ export const categoryColors: { [key: string]: string } = {
   "Electronics & Gadgets": "#8A2BE2", // BlueViolet
   "Dining Out & Takeout": "#FFA07A", // LightSalmon
   "Household Items": "#F0E68C", // Khaki
-  "Groceries": "#F0E68C", // Khaki
+  "Groceries": "#ADFF2F", // GreenYellow (changed for uniqueness)
   "Rent/Mortgage": "#FF6347", // Tomato
   "Transportation & Gas": "#4682B4", // SteelBlue
   "Clothing & Accessories": "#FFD700", // Gold
@@ -14,24 +14,25 @@ export const categoryColors: { [key: string]: string } = {
   "Gifts & Donations": "#FF69B4", // HotPink
   "Pet Care": "#778899", // LightSlateGray
   "Debt Payments": "#BDB76B", // DarkKhaki
-  "Taxes & Fees": "#FF6347", // Tomato
+  "Taxes & Fees": "#FF4500", // OrangeRed (changed for uniqueness)
   "Personal Care": "#6495ED", // CornflowerBlue
-  "Medical Healthcare": "#20B2AA", // LightSeaGreen
+  "Medical Healthcare": "#66CDAA", // MediumAquamarine (changed for uniqueness)
   "Education & Learning": "#DAA520", // GoldenRod
-  "Childcare & Kids": "#778899", // LightSlateGray
-  "Insurance Premiums": "#4682B4", // SteelBlue
-  "Miscellaneous": "#DB7093", // PaleVioletRed
+  "Childcare & Kids": "#FF8C00", // DarkOrange (changed for uniqueness)
+  "Insurance Premiums": "#8B4513", // SaddleBrown (changed for uniqueness)
+  "Miscellaneous": "#FF1493", // DeepPink (changed for uniqueness)
   "Salary & Wages": "#CD853F", // Peru
-  "Freelancing & Contract Work": "#FF69B4", // HotPink
-  "Business Profits": "#BDB76B", // DarkKhaki
+  "Freelancing & Contract Work": "#DC143C", // Crimson (changed for uniqueness)
+  "Business Profits": "#F4A460", // SandyBrown (changed for uniqueness)
   "Gifts Received": "#FFDEAD", // NavajoWhite
-  "Investments & Dividends": "#32CD32", // LimeGreen
-  "Rental Income": "#5F9EA0", // CadetBlue
-  "Bonuses & Commissions": "#5F9EA0", // CadetBlue
-  "Refunds & Reimbursements": "#5F9EA0", // CadetBlue
-  "Pension & Retirement Funds": "#5F9EA0", // CadetBlue
-  "Side Hustle & Part-Time Work": "#5F9EA0", // CadetBlue
+  "Investments & Dividends": "#2E8B57", // SeaGreen (changed for uniqueness)
+  "Rental Income": "#4682B4", // SteelBlue (changed for uniqueness)
+  "Bonuses & Commissions": "#8FBC8F", // DarkSeaGreen (changed for uniqueness)
+  "Refunds & Reimbursements": "#7B68EE", // MediumSlateBlue (changed for uniqueness)
+  "Pension & Retirement Funds": "#FFDAB9", // PeachPuff (changed for uniqueness)
+  "Side Hustle & Part-Time Work": "#FF4500", // OrangeRed (changed for uniqueness)
 };
+
 
 export const categoryEmojies: { [key: string]: string } = {
   "Utilities": "💡",
@@ -59,7 +60,7 @@ export const categoryEmojies: { [key: string]: string } = {
   "Salary & Wages": "💰",
   "Freelancing & Contract Work": "👨‍💻",
   "Business Profits": "📈",
-  "Gifts Recieved": "🎁",
+  "Gifts Received": "🎁",
   "Investments & Dividends": "📊",
   "Rental Income": "🏠",
   "Bonuses & Commissions": "🎉",

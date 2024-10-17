@@ -26,7 +26,7 @@ export default function NewTransactionInput({ navigation }: NewTransactionInputP
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.closeButton} onPress={() => navigation.goBack()}>
+      <TouchableOpacity style={styles.closeButton} onPress={() => navigation.navigate("AllTransactions")}>
         <Ionicons name="close" size={28} color="white" />
       </TouchableOpacity>
 

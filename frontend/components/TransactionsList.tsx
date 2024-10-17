@@ -57,7 +57,11 @@ export default function TransactionList({
                   {
                     text: 'Delete',
                     onPress: async () => {
-                      await deleteTransaction(transaction.id);
+                      if (transaction.id) {
+                        await deleteTransaction(transaction.id);
+                      } else {
+                        Alert.alert("Error", "Unable to find transaction ID.");
+                      }
                     },
                     style: 'destructive',
                   },

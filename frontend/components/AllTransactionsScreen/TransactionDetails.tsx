@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { NavigationProp, RouteProp } from '@react-navigation/native';
@@ -16,15 +16,44 @@ interface TransactionDetailsProps {
 }
 
 export default function TransactionDetails({ navigation, route }: TransactionDetailsProps) {
-  const { refreshBudget} = useGoalDataAccess();  
-  const [ amount, setAmount ] = useState(route.params.amount);
+  const { refreshBudget } = useGoalDataAccess();  
+  const [amount, setAmount] = useState(route.params.amount);
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [transactionType, setTransactionType] = useState<'Expense' | 'Income'>('Expense');
-  const [description, setDescription] = useState<string>(''); // Add description state
-  const categories = Object.keys(categoryColors); // Simplified category list
+  const [filterType, setFilterType] = useState<'Needs' | 'Wants' | 'Income'>('Needs');
+  const [description, setDescription] = useState<string>(''); 
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
   const db = useSQLiteContext(); 
+  const [emojiScale] = useState(new Animated.Value(1)); // Scale animation value for the "jump" effect
+  const [emojiAnimation, setEmojiAnimation] = useState<Animated.CompositeAnimation | null>(null); // Store reference to animation
+
+  useEffect(() => {
+    // Start or stop the continuous animation when the selected category changes
+    if (selectedCategory && !emojiAnimation) {
+      const animation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(emojiScale, {
+            toValue: 1.4, // Scale up (jump effect)
+            duration: 200,
+            useNativeDriver: true,
+          }),
+          Animated.timing(emojiScale, {
+            toValue: 1, // Scale back to original size
+            duration: 200,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      setEmojiAnimation(animation);
+      animation.start();
+    } else if (!selectedCategory && emojiAnimation) {
+      emojiAnimation.stop(); // Stop animation when no category is selected
+      setEmojiAnimation(null); // Reset animation reference
+    }
+  }, [selectedCategory]);
 
   const handleDateChange = (event: any, selectedDate: Date | undefined) => {
     setShowDatePicker(false);
@@ -35,38 +64,37 @@ export default function TransactionDetails({ navigation, route }: TransactionDet
 
   const handleSpendPress = async () => {
     const storedUserId = await AsyncStorage.getItem('user_id');
-    
     if (!storedUserId) {
       Alert.alert('Error', 'User not logged in. Please log in first.');
       return;
     }
-
-    // Validate if necessary fields are filled
     if (!amount || !selectedCategory) {
       Alert.alert('Error', 'Please enter a valid amount and select a category.');
       return;
     }
 
-    // Get the category ID from the mapping
-    const selectedCategoryId = categoryMapping[selectedCategory];
+    const selectedCategoryId = categoryMapping[selectedCategory]?.id;
     if (!selectedCategoryId) {
       Alert.alert('Error', 'Invalid category selected.');
       return;
     }
 
-    // Prepare the transaction object to be saved
+    // Adjust the type based on category type
+    let transactionTypeToInsert = categoryMapping[selectedCategory].category === 'Income'
+      ? 'Income'
+      : 'Expense'; // Defaults to 'Expense' for Needs and Wants
+
     const transaction = {
-      id: 0, // Auto-increment in the database
-      user_id: Number(storedUserId), // Change this to the actual user ID
+      id: 0,
+      user_id: Number(storedUserId),
       amount: Number(amount),
-      description: description || 'No description', // Default description if none is provided
-      category_id: selectedCategoryId, // Use the mapped category_id
-      date: date.getTime(), // Convert the selected date to a timestamp
-      type: transactionType, // 'Expense' or 'Income'
+      description: description || 'No description',
+      category_id: selectedCategoryId,
+      date: date.getTime(),
+      type: transactionTypeToInsert,
     };
 
     try {
-      // Insert the transaction into the database
       await db.runAsync(
         `INSERT INTO Transactions (user_id, category_id, amount, date, description, type) VALUES (?, ?, ?, ?, ?, ?);`,
         [
@@ -78,44 +106,56 @@ export default function TransactionDetails({ navigation, route }: TransactionDet
           transaction.type,
         ]
       );
-      
-      // Optional: Refresh or update any other parts of your app like budgets
-      //await refreshBudget(transaction.category_id);
-
-      // Reset the form and display a success message
       setAmount('');
       setDescription('');
-      setSelectedCategory(null);
+      setSelectedCategory(null); // Unselect category after submission
       setTransactionType('Expense');
       setDate(new Date());
 
       Alert.alert('Success', 'Transaction added successfully');
-      navigation.navigate("AllTransactions"); // Optionally navigate back to the previous screen after saving
+      navigation.navigate("AllTransactions");
     } catch (error) {
       Alert.alert('Error', 'Failed to save transaction. Please try again.');
       console.error(error);
     }
-};
+  };
 
-  
+  const filterCategories = () => {
+    return Object.keys(categoryMapping).filter(category => {
+      const matchesType = categoryMapping[category].category === filterType;
+      const matchesQuery = category.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesType && matchesQuery;
+    });
+  };
+
+  const handleCategoryPress = (category: string) => {
+    setSelectedCategory(category === selectedCategory ? null : category); // Toggle selection
+  };
+
+  const animatedCategoryStyle = (category: string) => {
+    if (category === selectedCategory) {
+      return {
+        transform: [{ scale: emojiScale }], // Apply the scale animation only to the selected category
+      };
+    }
+    return {};
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Top Header with Amount */}
       <View style={styles.header}>
         <Text style={styles.amountText}>£{amount}</Text>
         <TextInput
           placeholder="Transaction Description"
           value={description}
           onChangeText={setDescription}
-          style={styles.descriptionInput} // New input for description
+          style={styles.descriptionInput}
         />
         <TouchableOpacity style={styles.actionButton} onPress={handleSpendPress}>
           <Text style={styles.actionText}>Spend</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Transaction Details */}
       <View style={styles.detailsContainer}>
         <TouchableOpacity style={styles.detailRow} onPress={() => setShowDatePicker(true)}>
           <Text style={styles.label}>Date</Text>
@@ -129,55 +169,43 @@ export default function TransactionDetails({ navigation, route }: TransactionDet
           <DateTimePicker value={date} mode="date" display="default" onChange={handleDateChange} />
         )}
 
-        {/* Categories */}
         <Text style={styles.subHeader}>Categories</Text>
+
+        {/* Filter Tabs */}
         <View style={styles.filterRow}>
-          <TouchableOpacity
-            style={[styles.filterButton, transactionType === 'Expense' && styles.activeFilter]}
-            onPress={() => setTransactionType('Expense')}
-          >
-            <Text style={[styles.filterText, transactionType === 'Expense' && styles.activeFilterText]}>
-              Expenses
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.filterButton, transactionType === 'Income' && styles.activeFilter]}
-            onPress={() => setTransactionType('Income')}
-          >
-            <Text style={[styles.filterText, transactionType === 'Income' && styles.activeFilterText]}>
-              Income
-            </Text>
-          </TouchableOpacity>
+          {['Needs', 'Wants', 'Income'].map(type => (
+            <TouchableOpacity
+              key={type}
+              style={[styles.filterButton, filterType === type && styles.activeFilter]}
+              onPress={() => setFilterType(type as 'Needs' | 'Wants' | 'Income')}
+            >
+              <Text style={[styles.filterText, filterType === type && styles.activeFilterText]}>{type}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
+        {/* Categories */}
         <View style={styles.categoryContainer}>
-          {categories.map((category) => {
-            const isExpense = transactionType === 'Expense' && !category.includes('Income');
-            const isIncome = transactionType === 'Income' && category.includes('Income');
-
-            if (isExpense || isIncome) {
-              return (
-                <TouchableOpacity
-                  key={category}
-                  style={[
-                    styles.categoryPill,
-                    { backgroundColor: categoryColors[category] },
-                    selectedCategory === category && styles.selectedCategory,
-                  ]}
-                  onPress={() => setSelectedCategory(category)}
-                >
+          {filterCategories().map(category => (
+            <TouchableOpacity
+              key={category}
+              style={styles.categoryRow}
+              onPress={() => handleCategoryPress(category)}
+            >
+              <View style={[styles.categoryIconWrapper, { backgroundColor: categoryColors[category] }]}>
+                <Animated.View style={animatedCategoryStyle(category)}>
                   <Text style={styles.categoryEmoji}>{categoryEmojies[category]}</Text>
-                  <Text style={styles.categoryText}>{category}</Text>
-                </TouchableOpacity>
-              );
-            }
-            return null;
-          })}
+                </Animated.View>
+              </View>
+              <Text style={styles.categoryText}>{category}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
     </ScrollView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -265,29 +293,36 @@ const styles = StyleSheet.create({
   activeFilterText: {
     color: '#FFFFFF',
   },
-  categoryContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+  searchInput: {
+    backgroundColor: '#2C2C2C',
+    color: '#FFFFFF',
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 20,
   },
-  categoryPill: {
+  categoryContainer: {
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+  },
+  categoryRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 10,
-    margin: 5,
+    marginBottom: 10,
+  },
+  categoryIconWrapper: {
+    width: 40,
+    height: 40,
     borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   categoryEmoji: {
-    fontSize: 20,
-    marginRight: 8,
+    fontSize: 18,
+    color: '#FFFFFF',
   },
   categoryText: {
     color: '#FFFFFF',
     fontSize: 16,
-  },
-  selectedCategory: {
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
+    marginLeft: 10,
   },
 });
