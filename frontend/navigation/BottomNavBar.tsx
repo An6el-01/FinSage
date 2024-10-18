@@ -15,11 +15,12 @@ import BudgetsScreen from '../screens/Budgets';
 import Settings from '../screens/Settings';
 import SavingsGoals from '../screens/SavingsGoals';
 import Statistics from '../screens/Statistics';
-import YearlySummary from '../screens/YearlySummary';
+import YearlySummary from '../components/StatisticsScreen/YearlySummary';
 import AllTransactions from '../screens/AllTransactions';
 import CryptoReports from '../components/CryptoPortfolioScreen/CryptoReports';
 import CryptoAIRecommendations from '../components/CryptoPortfolioScreen/CryptoAIRecommendations';
 import CryptoPortfolio from '../screens/CryptoPortfolio';
+import FinancialProjections from '../components/StatisticsScreen/FinancialProjections';
 
 const Tab = createBottomTabNavigator();
 const StatsStack = createNativeStackNavigator<RootStackParamList>();
@@ -131,10 +132,17 @@ export default function BottomNavBar() {
       <Tab.Screen
         name="Settings"
         component={Settings}
-        options={{
-          tabBarButton: () => null,
+        options={({ navigation }) => ({
           title: 'Settings',
-        }}
+          tabBarButton:() => null,
+          headerLeft: () => (
+            <TouchableOpacity  style={styles.backIcon}onPress={() => navigation.navigate("Home")}>
+              <Ionicons name="arrow-back" size={24} color="#000000" />
+              <Text style={styles.backIconName}>Back Home</Text>
+            </TouchableOpacity>
+          ),
+        })} 
+        
       />
       <Tab.Screen
         name="SavingsGoals"
@@ -213,6 +221,20 @@ export default function BottomNavBar() {
           tabBarButton:() => null,
           headerLeft: () => (
             <TouchableOpacity  style={styles.backIcon}onPress={() => navigation.navigate("Crypto Portfolio")}>
+              <Ionicons name="arrow-back" size={24} color="#000000" />
+              <Text style={styles.backIconName}>Go Back</Text>
+            </TouchableOpacity>
+          ),
+        })} 
+        />
+        <Tab.Screen
+        name="FinancialProjections"
+        component={FinancialProjections}
+        options={({ navigation }) => ({
+          title: 'Financial Projections',
+          tabBarButton:() => null,
+          headerLeft: () => (
+            <TouchableOpacity  style={styles.backIcon}onPress={() => navigation.navigate("YearlySummary")}>
               <Ionicons name="arrow-back" size={24} color="#000000" />
               <Text style={styles.backIconName}>Go Back</Text>
             </TouchableOpacity>

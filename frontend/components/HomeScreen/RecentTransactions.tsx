@@ -36,7 +36,7 @@ const RecentTransactions: React.FC<RecentTransactionProps> = ({ transactions }) 
       <TransactionList transactions={recentTransactions} categories={[]} deleteTransaction={deleteTransaction} />
 
       {/* Button to navigate to all transactions */}
-      <TouchableOpacity onPress={() => navigation.navigate('AllTransactions')}>
+      <TouchableOpacity onPress={() => navigation.navigate('Transactions')}>
         <LinearGradient
           colors={['#007BFF', '#00BFFF']}
           start={{ x: 0, y: 0 }}

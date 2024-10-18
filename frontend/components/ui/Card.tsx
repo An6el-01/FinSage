@@ -7,15 +7,15 @@ interface CardProps extends React.PropsWithChildren {
 export default function Card({ children, style = {} }: CardProps) {
     return (
         <View style={[{
-            padding: 10,
-            borderRadius: 15,
-            backgroundColor: "white",
-            elevation: 8,
-            shadowColor: "#000",
-            shadowRadius: 8,
-            shadowOffset: { height: 6, width: 0 },
-            shadowOpacity: 0.15,
-            marginVertical: 5,
+            padding: 15,
+            borderRadius: 12,
+            marginVertical: 10,
+            backgroundColor: 'white',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 6,
+            elevation: 5,
         }, style]} // Use array syntax here to allow multiple styles
         >
             {children}

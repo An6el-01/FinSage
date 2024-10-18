@@ -22,6 +22,17 @@ export default function AllTransactions() {
   const [isLoading, setIsLoading] = React.useState(true);
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity style={styles.settingsIcon} onPress={() => navigation.navigate('Settings')}>
+          <Ionicons name="settings-outline" size={24} color="black" />
+          <Text style={styles.settingsIconName}>Settings</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
+
   // Function to fetch transactions and update state
   const fetchTransactions = async (month: number, year: number) => {
     setIsLoading(true);
@@ -159,5 +170,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#212121',
     marginBottom: 10,
+  },
+  settingsIcon: {
+    alignItems: 'center',
+    marginRight:  13,
+  },
+  settingsIconName: {
+    marginTop: 3,
+    fontSize: 12,
+    color: '#212121',
   }
 });

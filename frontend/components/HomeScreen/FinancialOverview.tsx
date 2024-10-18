@@ -100,14 +100,14 @@ const FinancialOverview: React.FC<FinancialOverviewProps> = ({
           <View style={[styles.pill, styles.incomePill]}>
             <Text style={styles.pillText}>Income</Text>
           </View>
-          <Text style={styles.amountText}>{formatMoney(totalIncome)}</Text>
+          <Text style={styles.amountText}>+ {formatMoney(totalIncome)}</Text>
         </View>
 
         <View style={styles.pillSection}>
           <View style={[styles.pill, styles.expensePill]}>
             <Text style={styles.pillText}>Expenses</Text>
           </View>
-          <Text style={styles.amountText}>{formatMoney(totalExpenses)}</Text>
+          <Text style={styles.amountText}>- {formatMoney(totalExpenses)}</Text>
         </View>
       </View>
 
