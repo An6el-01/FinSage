@@ -240,7 +240,7 @@ export default function YearlySummary() {
       <View style={styles.card}>
         <Text style={styles.cardTitle}>AI Insights</Text>
         <Text style={styles.cardText}>
-          "Increase your monthly savings by $200 to achieve your target faster."
+          Insight
         </Text>
       </View>
     </ScrollView>
