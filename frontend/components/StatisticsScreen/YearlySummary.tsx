@@ -3,12 +3,11 @@ import { ScrollView, Text, View, StyleSheet, Dimensions, TouchableOpacity } from
 import { useSQLiteContext } from 'expo-sqlite/next';
 import { useFocusEffect } from '@react-navigation/native';
 import { Transactions, TransactionsCategories, SavingsGoals } from '../../types/types';
-import { categoryColors, categoryEmojies } from '../../types/constants';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from '../../types/navigationTypes';
-import { Ionicons } from '@expo/vector-icons';
 
-import SavingsGoalsProgress from "../HomeScreen/SavingsGoalsProgress";
+import StatsYearChart from '../StatisticsScreen/statsYearChart';
+import SavingsGoalsYearlySummary from './SavingsGoalsStatistics';
 
 
 const colors = {
@@ -115,6 +114,48 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
   },
+  overviewContainer: {
+    flexDirection: 'row',
+    justifyContent:'space-between',
+    marginBottom: 20.
+  },
+  overviewCardExpenses: {
+    flex: 1,
+    backgroundColor: 'red',
+    padding: 20,
+    marginHorizontal: 5,
+    borderRadius: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 8,
+  },
+  overviewCardIncome: {
+    flex: 1,
+    backgroundColor: 'green',
+    padding: 20,
+    marginHorizontal: 5,
+    borderRadius: 15,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 8,
+  },
+  overviewTitle: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  overviewAmount:{
+    color:'#fff',
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginTop: 5,
+    textAlign: 'center',
+  }
 });
 
 const getLuminance = (hexColor: string) => {
@@ -139,6 +180,19 @@ export default function YearlySummary() {
   const [totalIncome, setTotalIncome] = React.useState(0);
   const [totalExpenses, setTotalExpenses] = React.useState(0);
   const [goals, setGoals] = React.useState<SavingsGoals[]>([]); // Add state for goals
+  const [incomeData,setIncomeData] = React.useState<number[]>(Array(12).fill(0));
+  const [expensesData,setExpensesData] = React.useState<number[]>(Array(12).fill(0));
+
+  useFocusEffect(
+    React.useCallback(() => {
+      
+      db.withTransactionAsync(async () => {
+          await loadGoals();
+          await fetchData();
+    
+      });
+    }, [db])
+  );
 
   const fetchData = async () => {
     const startOfYear = new Date(currentYear, 0, 1).getTime();
@@ -151,15 +205,19 @@ export default function YearlySummary() {
 
     let totalIncome = 0;
     let totalExpenses = 0;
-    
+    const incomeData = Array(12).fill(0);
+    const expensesData = Array(12).fill(0);  
 
     result.forEach(transaction => {
-      const transactionDate = new Date(transaction.date).getDate()-1;
+      const transactionDate = new Date(transaction.date * 1000);
+      const monthIndex = transactionDate.getMonth();
 
       if (transaction.type === 'Income') {
         totalIncome += transaction.amount;
+        incomeData[monthIndex] += transaction.amount;
       }else if (transaction.type === 'Expense') {
         totalExpenses += transaction.amount;
+        expensesData[monthIndex] += transaction.amount;
       }
     });
 
@@ -170,6 +228,8 @@ export default function YearlySummary() {
 
     setTotalIncome(totalIncome);
     setTotalExpenses(totalExpenses);
+    setIncomeData(incomeData);
+    setExpensesData(expensesData);
   };
 
   useFocusEffect(
@@ -187,6 +247,14 @@ export default function YearlySummary() {
     targetDate: new Date(goal.target_date).toISOString(), // Convert target_date to string
   }));
 
+  const loadGoals = async () => {
+    const result = await db.getAllAsync<SavingsGoals>(
+      'SELECT * FROM SavingsGoals WHERE favorite = ?;',
+      [1]
+    );
+    setGoals(result);
+  };
+
   const aggregateDataByMonth = () => {
     // Existing logic here...
   };
@@ -202,20 +270,20 @@ export default function YearlySummary() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {/* Financial Overview Cards */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Total Income</Text>
-        <Text style={styles.cardText}>${totalIncome}</Text>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Total Expenses</Text>
-        <Text style={styles.cardText}>${totalExpenses}</Text>
+      <View style={styles.overviewContainer}>
+        <View style={styles.overviewCardIncome}>
+          <Text style={styles.overviewTitle}>Total Income</Text>
+          <Text style={styles.overviewAmount}>${totalIncome}</Text>
+        </View>
+        <View style={styles.overviewCardExpenses}>
+          <Text style={styles.overviewTitle}>Total Expenses</Text>
+          <Text style={styles.overviewAmount}>${totalExpenses}</Text>
+        </View>
       </View>
 
       {/* Charts */}
       <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>Spending Trends</Text>
-        {/*<LineChart /* ... */ }
+        <StatsYearChart incomeData={incomeData} expensesData={expensesData}></StatsYearChart>
       </View>
 
       {/* Projection Section */}
@@ -229,11 +297,7 @@ export default function YearlySummary() {
 
       {/* Savings Progress */}
       <View style={styles.card}>
-        <Text style={styles.cardTitle}>Savings Goals</Text>
-        <View style={styles.progressBar}>
-         <SavingsGoalsProgress goals={mappedGoals} />
-        </View>
-        <Text style={styles.cardText}>60% of your $5,000 goal.</Text>
+         <SavingsGoalsYearlySummary goals={mappedGoals} />
       </View>
 
       {/* Insights */}

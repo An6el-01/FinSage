@@ -166,6 +166,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   transactionsTitle: {
+    textAlign: 'center',
     fontSize: 18,
     fontWeight: 'bold',
     color: '#212121',

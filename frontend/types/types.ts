@@ -112,6 +112,11 @@ export interface Transactions {
   export interface RecentTransactionProps {
     transactions: Transactions[];
   }
+
+  export type StatsYearChartProps = {
+    incomeData: number[];
+    expensesData: number[];
+  };
   export interface BackupData{
     [key: string]: Array<{ [key: string]: any }>;
   }
