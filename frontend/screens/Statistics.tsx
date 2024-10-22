@@ -323,7 +323,7 @@ export default function Statistics() {
               coverFill={colors.background}
             />
           ) : (
-            <Text style={styles.noDataText}>No transactions to display</Text>
+            <Text style={styles.noDataText}>No transactions</Text>
           )}
         </View>
         </View>

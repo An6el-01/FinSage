@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Text, StyleSheet, Dimensions, Alert } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Alert, TouchableOpacity } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { StatsYearChartProps } from '../../types/types';
 
@@ -50,12 +50,31 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: "#333",
   },
+  closeButton: {
+    position: 'absolute',
+    top: -10.,
+    left: -10,
+    backgroundColor: '#FF0000',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeButtonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+  }
 }
 );
 
 
+
 const StatsYearChart: React.FC<StatsYearChartProps> = ({ incomeData, expensesData }) => {
   const [tooltipData, setTooltipData] = React.useState<{ value: number, label: string, x: number, y: number} | null>(null);
+  const toolTipLabels = {
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'  ,'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'] 
+  } 
   const chartData = {
     labels: ['Jan'," "," "," "," ", " "," ", " "," "," "," ",'Dec'],
     datasets: [
@@ -84,24 +103,45 @@ const StatsYearChart: React.FC<StatsYearChartProps> = ({ incomeData, expensesDat
           backgroundGradientFrom: '#f5f5f5',
           backgroundGradientTo: '#f5f5f5',
           decimalPlaces: 2,
-          color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-          labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+          color: () => `rgba(0, 0, 0, 0.6)`,  // Soft black for axes
+          labelColor: () => `rgba(0, 0, 0, 0.6)`,  // Muted labels
+          propsForBackgroundLines: {
+            strokeDasharray: '0',  // Subtle grid
+            stroke: '#e0e0e0',
+          },
+          propsForDots: {
+            r: '4',
+            strokeWidth: '0',
+            fill: '#fff',  // White dots for interactive feel
+          },
         }}
         style={{
+          marginVertical: 10,
           borderRadius: 16,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 3 },
+          shadowOpacity: 0.2,
+          shadowRadius: 4,
         }}
         verticalLabelRotation={0}
+        bezier
+        fromZero={true}
+        withInnerLines={false}
+        segments={6}
         //Touch Event Handling
         onDataPointClick={({ value, index, x, y}) => {
-          const label = chartData.labels[index];
+          const label =  toolTipLabels.labels[index];
+          
           setTooltipData({ value, label, x, y});
           
         }}
-        fromZero
       />
 
       {tooltipData && (
-        <View style={[styles.tooltipContainer, {top: tooltipData.y + 38, left: tooltipData.x + 11}]}>
+        <View style={[styles.tooltipContainer, {top: tooltipData.y + 42, left: tooltipData.x - 29}]}>
+          <TouchableOpacity style={styles.closeButton} onPress={() => setTooltipData(null)}>
+            <Text style={styles.closeButtonText}>X</Text>
+          </TouchableOpacity>
           <Text style={styles.toolTipText}>{`${tooltipData.label}: $${tooltipData.value}`}</Text>
         </View>
       )}

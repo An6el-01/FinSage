@@ -209,7 +209,7 @@ export default function YearlySummary() {
     const expensesData = Array(12).fill(0);  
 
     result.forEach(transaction => {
-      const transactionDate = new Date(transaction.date * 1000);
+      const transactionDate = new Date(transaction.date);
       const monthIndex = transactionDate.getMonth();
 
       if (transaction.type === 'Income') {
