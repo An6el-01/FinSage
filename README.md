@@ -1,4 +1,4 @@
-# FinSage
+# BudgetBee
 
 FinSage is a cross-platform financial management app built using React Native. The app helps users manage their finances with a comprehensive suite of tools for tracking expenses, setting budgets, managing crypto portfolios, and much more. The app leverages TypeScript, Python, Docker, SQLite, and Google Cloud technologies to provide a seamless financial management experience on mobile devices.
 
